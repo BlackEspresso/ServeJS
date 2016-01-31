@@ -17,13 +17,14 @@ function router(resp,req){
 }
 
 function login(resp,req){
-	reloadTemplates();
+	//reloadTemplates();
 	if(req.method=='GET'){
 		resp.write(template("login.thtml","test"))
 		resp.write("hello")
+		writeFile("static","test.txt",'hallo')
 	}
 	else{
-		resp.write('logged in. no. kidding. password wrong')
+		//resp.write('logged in. no. kidding. password wrong')
 	}
 }
 
