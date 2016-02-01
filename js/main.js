@@ -21,7 +21,8 @@ function login(resp,req){
 	if(req.method=='GET'){
 		//resp.write(template("login.thtml","test"))
 		//resp.write("hello")
-		resp.write(readDir('static'))
+		//writeFile('static','test.html','<html>')
+		resp.write(JSON.stringify(readDir('static')))
 	}
 	else{
 		//resp.write('logged in. no. kidding. password wrong')

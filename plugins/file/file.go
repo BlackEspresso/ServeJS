@@ -13,19 +13,7 @@ func InitPlugin() *pluginbase.Plugin {
 		Init: func(vm *otto.Otto) {
 			vm.Set("writeFile", writeFile)
 			vm.Set("readFile", readFile)
-			vm.Set("readDir", readDir)
-		},
-	}
-	return &p
-}
-
-type JsFileInfo struct{
-	Name string
-	Size int64
-	IsDir bool
-}
-
-func readDir(c otto.FunctionCall) otto.Value{
+			vm.Set("readDir", func (c otto.FunctionCall) otto.Value{
 	folder, _ := c.Argument(0).ToString()
 	fileInfos, err := ioutil.ReadDir("./" + folder)
 	if err != nil {
@@ -41,11 +29,21 @@ func readDir(c otto.FunctionCall) otto.Value{
 			v.Size(),
 			v.IsDir(),
 		}
-		jsFileInfos = append(jsFileInfos,&fi)
+		jsFileInfos = append(jsFileInfos, &fi)
 	}
 	
-	dataV, _ := otto.ToValue(jsFileInfos)
+	dataV, _ := vm.ToValue(jsFileInfos)
 	return dataV
+})
+		},
+	}
+	return &p
+}
+
+type JsFileInfo struct{
+	Name string
+	Size int64
+	IsDir bool
 }
 
 func readFile(c otto.FunctionCall) otto.Value{
