@@ -19,9 +19,9 @@ function router(resp,req){
 function login(resp,req){
 	//reloadTemplates();
 	if(req.method=='GET'){
-		resp.write(template("login.thtml","test"))
-		resp.write("hello")
-		writeFile("static","test.txt",'hallo')
+		//resp.write(template("login.thtml","test"))
+		//resp.write("hello")
+		resp.write(readDir('static'))
 	}
 	else{
 		//resp.write('logged in. no. kidding. password wrong')
