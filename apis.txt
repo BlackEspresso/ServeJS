@@ -1,0 +1,13 @@
+fs.write(folder,file,data)
+fs.read(folder,file)
+fs.readDir(folder)
+fs.mkDir(folder)
+
+http.get(url)
+http.post(url,{})
+
+mail.send(receiver,subject,mail)
+
+template.exec(name,{})
+template.reload()
+
