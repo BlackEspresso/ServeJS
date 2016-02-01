@@ -100,4 +100,6 @@ func requestToJSObject(o *otto.Object, r *http.Request) {
 	o.Set("header", r.Header)
 	o.Set("cookies", r.Cookies())
 	o.Set("method", r.Method)
+	r.ParseForm()
+    o.Set("formValues",r.Form)
 }

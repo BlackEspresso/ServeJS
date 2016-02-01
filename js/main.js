@@ -9,7 +9,7 @@ function onRequest(resp,req){
 function router(resp,req){
 	var obj= {
 		on:function(url,func){
-			if(url==req.url){func(resp,req)}
+			if(req.url.indexOf(url)==0){func(resp,req)}
 			return obj;
 		}
 	}
@@ -22,7 +22,8 @@ function login(resp,req){
 		//resp.write(template("login.thtml","test"))
 		//resp.write("hello")
 		//writeFile('static','test.html','<html>')
-		resp.write(JSON.stringify(readDir('static')))
+		resp.write(JSON.stringify(req.formValues))
+		//resp.write(JSON.stringify(readDir('static')))
 	}
 	else{
 		//resp.write('logged in. no. kidding. password wrong')
