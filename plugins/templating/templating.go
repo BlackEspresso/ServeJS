@@ -18,7 +18,7 @@ func InitPlugin() *pluginbase.Plugin {
 		Init: func(vm *otto.Otto) {
 			vm.Set("runTemplate", func(c otto.FunctionCall) otto.Value {
 				name, _ := c.Argument(0).ToString()
-				text := c.Argument(1)
+				jsObject := c.Argument(1).Object()
 
 				b := new(bytes.Buffer)
 				t := templates.Lookup(name)
@@ -27,7 +27,13 @@ func InitPlugin() *pluginbase.Plugin {
 				}
 				t.Parse(name)
 
-				err := t.Execute(b, text)
+				kv := map[string]interface{}{}
+				for _,k := range(jsObject.Keys()){
+					objValue, _ := jsObject.Get(k)
+					kv[k] =  objValue
+				}
+
+				err := t.Execute(b, kv)
 				if err != nil {
 					return otto.UndefinedValue()
 				}
