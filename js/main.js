@@ -19,10 +19,14 @@ function router(resp,req){
 function login(resp,req){
 	//reloadTemplates();
 	if(req.method=='GET'){
-		//resp.write(template("login.thtml","test"))
+		//resp.write()
 		//resp.write("hello")
 		//writeFile('static','test.html','<html>')
-		resp.write(JSON.stringify(req.formValues))
+		//resp.write(resolve('m.yelp.com'))
+		resp.write(addTask('test',0,function(){console.log('ok')}))
+		startTasks()
+		//resp.write(runTemplate("login.thtml",{Name:"v"}))
+		//resp.write(JSON.stringify(req.formValues))
 		//resp.write(JSON.stringify(readDir('static')))
 	}
 	else{

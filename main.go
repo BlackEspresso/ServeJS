@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"./plugins/dns"
 	"./plugins/file"
 	"./plugins/pluginbase"
+	"./plugins/tasks"
 	"./plugins/templating"
 	"github.com/robertkrimen/otto"
 )
@@ -16,6 +18,10 @@ var plugins []*pluginbase.Plugin = []*pluginbase.Plugin{}
 
 func main() {
 	addPlugins()
+	http.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.URL.Path[1:])
+		http.ServeFile(w, r, r.URL.Path[1:])
+	})
 	http.HandleFunc("/", jsHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -24,6 +30,10 @@ func addPlugins() {
 	p := templating.InitPlugin()
 	addPlugin(p)
 	p = file.InitPlugin()
+	addPlugin(p)
+	p = dns.InitPlugin()
+	addPlugin(p)
+	p = tasks.InitPlugin()
 	addPlugin(p)
 }
 
@@ -101,5 +111,5 @@ func requestToJSObject(o *otto.Object, r *http.Request) {
 	o.Set("cookies", r.Cookies())
 	o.Set("method", r.Method)
 	r.ParseForm()
-    o.Set("formValues",r.Form)
+	o.Set("formValues", r.Form)
 }
