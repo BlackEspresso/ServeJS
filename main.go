@@ -8,15 +8,33 @@ import (
 
 	"./plugins/dns"
 	"./plugins/file"
+	"./plugins/mail"
 	"./plugins/pluginbase"
 	"./plugins/tasks"
 	"./plugins/templating"
 	"github.com/robertkrimen/otto"
+	"gopkg.in/yaml.v2"
 )
 
 var plugins []*pluginbase.Plugin = []*pluginbase.Plugin{}
 
+type Configuration struct {
+	Port    int
+	Plugins map[string]map[string]string
+}
+
+var serverConf = Configuration{}
+
 func main() {
+	configraw, err := ioutil.ReadFile("./serverjs.yaml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = yaml.Unmarshal(configraw, &serverConf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	addPlugins()
 	http.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path[1:])
@@ -34,6 +52,8 @@ func addPlugins() {
 	p = dns.InitPlugin()
 	addPlugin(p)
 	p = tasks.InitPlugin()
+	addPlugin(p)
+	p = mail.InitPlugin()
 	addPlugin(p)
 }
 
@@ -75,6 +95,7 @@ func newJSRuntime(r *http.Request) *otto.Otto {
 		v.Init(vm)
 	}
 
+	vm.Set("settings", serverConf)
 	return vm
 }
 

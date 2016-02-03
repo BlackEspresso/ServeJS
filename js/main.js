@@ -18,13 +18,17 @@ function router(resp,req){
 
 function login(resp,req){
 	//reloadTemplates();
+	loadMailSettings();
 	if(req.method=='GET'){
 		//resp.write()
+		resp.write(JSON.stringify(settings))
+		var k = send('marinuspfund@googlemail.com','hallo',JSON.stringify(req))
+		
 		//resp.write("hello")
 		//writeFile('static','test.html','<html>')
 		//resp.write(resolve('m.yelp.com'))
-		resp.write(addTask('test',0,function(){console.log('ok')}))
-		startTasks()
+		//resp.write(addTask('test',0,function(){console.log('ok')}))
+		//startTasks()
 		//resp.write(runTemplate("login.thtml",{Name:"v"}))
 		//resp.write(JSON.stringify(req.formValues))
 		//resp.write(JSON.stringify(readDir('static')))

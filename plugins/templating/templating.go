@@ -28,9 +28,9 @@ func InitPlugin() *pluginbase.Plugin {
 				t.Parse(name)
 
 				kv := map[string]interface{}{}
-				for _,k := range(jsObject.Keys()){
+				for _, k := range jsObject.Keys() {
 					objValue, _ := jsObject.Get(k)
-					kv[k] =  objValue
+					kv[k] = objValue
 				}
 
 				err := t.Execute(b, kv)
@@ -41,14 +41,14 @@ func InitPlugin() *pluginbase.Plugin {
 				return retV
 			})
 
-			vm.Set("reloadTemplate", reloadTemplate)
+			vm.Set("reloadTemplates", reloadTemplates)
 		},
 	}
 
 	return &p1
 }
 
-func reloadTemplate(c otto.FunctionCall) otto.Value {
+func reloadTemplates(c otto.FunctionCall) otto.Value {
 	templates, _ = template.ParseGlob("./tmpl/*.thtml")
 	return otto.TrueValue()
 }
