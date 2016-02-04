@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"./plugins/cmd"
 	"./plugins/dns"
 	"./plugins/file"
 	"./plugins/mail"
@@ -54,6 +55,8 @@ func addPlugins() {
 	p = tasks.InitPlugin()
 	addPlugin(p)
 	p = mail.InitPlugin()
+	addPlugin(p)
+	p = cmd.InitPlugin()
 	addPlugin(p)
 }
 
