@@ -7,6 +7,12 @@ function onRequest(resp,req){
 		.on('/run', run)
 		.on('/login',login)
 		.on('/admin',admin)
+		.on('/req',request)
+}
+
+function request(resp,req){
+	siteResp = httpDo({url:'http://google.com',method:'GET'})
+	resp.write(JSON.stringify(siteResp))
 }
 
 function mailTo(resp,req){

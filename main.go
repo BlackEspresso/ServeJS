@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"./plugins/cmd"
 	"./plugins/dns"
 	"./plugins/file"
+	phttp "./plugins/http"
 	"./plugins/mail"
 	"./plugins/pluginbase"
 	"./plugins/tasks"
@@ -58,6 +58,8 @@ func addPlugins() {
 	addPlugin(p)
 	p = cmd.InitPlugin()
 	addPlugin(p)
+	p = phttp.InitPlugin()
+	addPlugin(p)
 }
 
 func jsHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +72,8 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 
 	objRequest, _ := vm.Object("({})")
 	objResponse, _ := vm.Object("({})")
-	requestToJSObject(objRequest, r)
-	responseToJSObject(objResponse, w)
+	phttp.RequestToJSObject(objRequest, r)
+	phttp.ResponseWriterToJSObject(objResponse, w)
 
 	_, err = vm.Run(string(fileC))
 	if err != nil {
@@ -86,7 +88,7 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 
-	jsObjectToResponse(objResponse, w)
+	phttp.JsObjectToResponse(objResponse, w)
 
 	//str, _ := ret.ToString()
 	//w.Write([]byte(str))
@@ -104,36 +106,4 @@ func newJSRuntime(r *http.Request) *otto.Otto {
 
 func addPlugin(p *pluginbase.Plugin) {
 	plugins = append(plugins, p)
-}
-
-func responseToJSObject(o *otto.Object, w http.ResponseWriter) {
-	o.Set("write", func(c otto.FunctionCall) otto.Value {
-		text, _ := c.Argument(0).ToString()
-		w.Write([]byte(text))
-		return otto.TrueValue()
-	})
-}
-
-func jsObjectToResponse(respObj *otto.Object, w http.ResponseWriter) {
-	contentTypeV, err := respObj.Get("contentType")
-	if err == nil {
-		contentType, _ := contentTypeV.ToString()
-		w.Header().Set("Content-Type", contentType)
-	}
-
-	codeV, err := respObj.Get("statusCode")
-	if err == nil && codeV.IsDefined() {
-		code, _ := codeV.ToInteger()
-		fmt.Println(code)
-		w.WriteHeader(int(code))
-	}
-}
-
-func requestToJSObject(o *otto.Object, r *http.Request) {
-	o.Set("url", r.URL.String())
-	o.Set("header", r.Header)
-	o.Set("cookies", r.Cookies())
-	o.Set("method", r.Method)
-	r.ParseForm()
-	o.Set("formValues", r.Form)
 }
