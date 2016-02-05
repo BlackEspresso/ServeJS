@@ -13,6 +13,8 @@ import (
 	"./plugins/pluginbase"
 	"./plugins/tasks"
 	"./plugins/templating"
+	"./plugins/websocket"
+
 	"github.com/robertkrimen/otto"
 	"gopkg.in/yaml.v2"
 )
@@ -60,6 +62,20 @@ func addPlugins() {
 	addPlugin(p)
 	p = phttp.InitPlugin()
 	addPlugin(p)
+	p = phttp.InitPlugin()
+	addPlugin(p)
+	p = websocket.InitPlugin()
+	addPlugin(p)
+}
+
+func newJSRuntime() *otto.Otto {
+	vm := otto.New()
+	for _, v := range plugins {
+		v.Init(vm)
+	}
+
+	vm.Set("settings", serverConf)
+	return vm
 }
 
 func jsHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,16 +108,6 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 
 	//str, _ := ret.ToString()
 	//w.Write([]byte(str))
-}
-
-func newJSRuntime(r *http.Request) *otto.Otto {
-	vm := otto.New()
-	for _, v := range plugins {
-		v.Init(vm)
-	}
-
-	vm.Set("settings", serverConf)
-	return vm
 }
 
 func addPlugin(p *pluginbase.Plugin) {

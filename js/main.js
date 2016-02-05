@@ -8,6 +8,11 @@ function onRequest(resp,req){
 		.on('/login',login)
 		.on('/admin',admin)
 		.on('/req',request)
+	
+}
+
+function websocket(resp,req){
+
 }
 
 function request(resp,req){
