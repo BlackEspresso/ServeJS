@@ -9,6 +9,7 @@ import (
 	"./plugins/dns"
 	"./plugins/file"
 	phttp "./plugins/http"
+	"./plugins/httpmappings"
 	"./plugins/mail"
 	"./plugins/pluginbase"
 	"./plugins/tasks"
@@ -64,7 +65,9 @@ func addPlugins() {
 	addPlugin(p)
 	p = phttp.InitPlugin()
 	addPlugin(p)
-	p = websocket.InitPlugin()
+	p = websocket.InitPlugin(newJSRuntime)
+	addPlugin(p)
+	p = httpmappings.InitPlugin()
 	addPlugin(p)
 }
 
@@ -79,7 +82,14 @@ func newJSRuntime() *otto.Otto {
 }
 
 func jsHandler(w http.ResponseWriter, r *http.Request) {
-	vm := newJSRuntime(r)
+
+	ret := httpmappings.RunMappings(w, r, plugins)
+	if ret {
+		// httpmappings has process this mapping
+		return
+	}
+
+	vm := newJSRuntime()
 	fileC, err := ioutil.ReadFile("./js/main.js")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

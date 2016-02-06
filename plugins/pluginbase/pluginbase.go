@@ -1,11 +1,18 @@
 package pluginbase
 
-import "github.com/robertkrimen/otto"
+import (
+	"net/http"
+
+	"github.com/robertkrimen/otto"
+)
+
+type FuncMapping map[string]func(w http.ResponseWriter, r *http.Request)
 
 type Plugin struct {
-	Name     string
-	Init     PluginInit
-	Disabled bool
+	Name        string
+	Init        PluginInit
+	Disabled    bool
+	HttpMapping map[string]func(w http.ResponseWriter, r *http.Request)
 }
 type Result struct {
 	Suc interface{}

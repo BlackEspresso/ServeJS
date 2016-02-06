@@ -8,11 +8,13 @@ function onRequest(resp,req){
 		.on('/login',login)
 		.on('/admin',admin)
 		.on('/req',request)
+
+	addMapping('/websocket','websocket')
 	
 }
 
-function websocket(resp,req){
-
+function onWebSocketRequest(message){
+	console.log(message)
 }
 
 function request(resp,req){

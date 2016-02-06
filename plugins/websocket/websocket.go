@@ -13,15 +13,15 @@ var upgrader = websocket.Upgrader{}
 
 func InitPlugin(createVM func() *otto.Otto) *pluginbase.Plugin {
 	p := pluginbase.Plugin{
-		Name: "file",
-		Init: func(vm *otto.Otto) {
-
-			vm.Set("newWebsocket", func(c otto.FunctionCall) otto.Value {
-				return otto.TrueValue()
-			})
-
+		Name: "websocket",
+		Init: func(vm *otto.Otto) {},
+		HttpMapping: pluginbase.FuncMapping{
+			"websocket": func(w http.ResponseWriter, r *http.Request) {
+				doWebSocket(w, r, createVM)
+			},
 		},
 	}
+
 	return &p
 }
 
@@ -32,13 +32,15 @@ func doWebSocket(w http.ResponseWriter, r *http.Request, createVM func() *otto.O
 		return
 	}
 	defer c.Close()
-	//vm := createVM()
+	vm := createVM()
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
 		}
+		vm.Call("onWebSocketRequest", message)
+
 		log.Printf("recv: %s", message)
 		err = c.WriteMessage(mt, message)
 		if err != nil {
