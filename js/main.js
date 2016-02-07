@@ -10,6 +10,7 @@ function onRequest(resp,req){
 		.on('/req',request)
 		.on('/editjs',editjs)
 		.on('/boerse',boerse)
+		.on('/scandns',scandns)
 
 	addMapping('/websocket','websocket')
 	addMapping('/writefile','writefile')
@@ -24,6 +25,45 @@ function boerse(resp,req){
     resp.write(serviceResp.list.resources[0].resource.fields.name);
     resp.write('\n')
     resp.write(serviceResp.list.resources[0].resource.fields.price);
+}
+
+function scandns(resp,req){
+    var fileRead = readFile('static', 'subdomain_wordlist.txt');
+    var lines = fileRead.Suc.split('\n');
+
+    if (req.formValues.host === null) {
+        resp.write('error')
+    }
+
+    var count = 5;
+    if (req.formValues.count !== null) {
+        count = parseInt(req.formValues.count)
+    }
+
+    var ret = {};
+    var regExIp = /([^\s]+)\s+(\d+)\s+(\w+)\s+(\w+)\s+(\d+\.\d+\.\d+\.\d+)/ig;
+
+    resp.write('[\n')
+    for (var x = 0; x < lines.length&&x<count; x++) {
+        var dnsReponse = resolve(lines[x].trim() + '.' + req.formValues.host);
+        var entries= dnsReponse.split('\n');
+        
+        for(var z=0;z<entries.length;z++){
+    		var matches= entries[z].split(/\s+/);
+        	for (var y = 0; y < matches.length; y++) {
+            	if (y > 4)
+                	matches[4] += matches[y];
+            }
+        	matches.splice(5, matches.length - 5);
+        	if(matches.length === 1 && matches[0]==="")
+        		continue;
+            resp.write(JSON.stringify(matches));
+            if(x+1<lines.length && x+1<count){
+                resp.write(',\n');
+            }
+        }
+    }
+    resp.write('\n]');
 }
 
 function editjs(resp,req){
