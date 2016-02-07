@@ -14,7 +14,7 @@ function onRequest(resp,req){
 }
 
 function onWebSocketRequest(message){
-	console.log(message)
+	console.log('js: '+message)
 }
 
 function request(resp,req){

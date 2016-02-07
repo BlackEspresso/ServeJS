@@ -1,6 +1,8 @@
 package websocket
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -33,13 +35,20 @@ func doWebSocket(w http.ResponseWriter, r *http.Request, createVM func() *otto.O
 	}
 	defer c.Close()
 	vm := createVM()
+	fileC, err := ioutil.ReadFile("./js/main.js")
+	_, err = vm.Run(string(fileC))
+	fmt.Println("websocket start")
+
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
 		}
-		vm.Call("onWebSocketRequest", message)
+		_, err = vm.Call("onWebSocketRequest", nil, string(message))
+		if err != nil {
+			log.Println("jserror", err)
+		}
 
 		log.Printf("recv: %s", message)
 		err = c.WriteMessage(mt, message)
@@ -48,4 +57,5 @@ func doWebSocket(w http.ResponseWriter, r *http.Request, createVM func() *otto.O
 			break
 		}
 	}
+	fmt.Println("websocket end")
 }

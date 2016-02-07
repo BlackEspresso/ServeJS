@@ -32,7 +32,7 @@ func AddMapping(url string, name string) {
 }
 
 func RunMappings(w http.ResponseWriter, r *http.Request, plugins []*pluginbase.Plugin) bool {
-	url := r.URL.Path[1:]
+	url := r.URL.Path
 	funcName, ok := urlMapping[url]
 	if ok {
 		for _, p := range plugins {

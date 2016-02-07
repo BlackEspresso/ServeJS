@@ -45,7 +45,7 @@ func main() {
 		http.ServeFile(w, r, r.URL.Path[1:])
 	})
 	http.HandleFunc("/", jsHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
 func addPlugins() {
