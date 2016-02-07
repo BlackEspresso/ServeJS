@@ -9,21 +9,9 @@ function onRequest(resp,req){
 		.on('/admin',admin)
 		.on('/req',request)
 		.on('/editjs',editjs)
-		.on('/boerse',boerse)
 
 	addMapping('/websocket','websocket')
-	addMapping('/writefile','writefile')
-}
-
-function boerse(resp,req){
-    var symbol = req.formValues.symbol;
-    var url = 'http://finance.yahoo.com/webservice/v1/symbols/'+symbol+'/quote?format=json';
-    var siteResp = httpDo({url:url,method:'GET'});
-    var serviceResp = JSON.parse(siteResp.body);
-    //resp.write(JSON.stringify(JSON.parse(siteResp.body),null,2))
-    resp.write(serviceResp.list.resources[0].resource.fields.name);
-    resp.write('\n')
-    resp.write(serviceResp.list.resources[0].resource.fields.price);
+	addMapping('/writejs','writefile')
 }
 
 function editjs(resp,req){
@@ -52,9 +40,9 @@ function run(resp,req){
 	resp.contentType='text/plain'
 	var cmd = runCmd('echo','4','5')
 	if(cmd.Suc)
-		resp.write(cmd.Suc);
+		resp.write(cmd.Suc)
 	else
-		resp.write(cmd.Err);
+		resp.write(cmd.Err)
 }
 
 function hello(resp,req){
@@ -67,6 +55,8 @@ function login(resp,req){
 	if(req.method=='GET'){
 		//resp.write()
 		resp.write(JSON.stringify(settings))
+		
+		
 		//resp.write("hello")
 		//writeFile('static','test.html','<html>')
 		//resp.write(resolve('m.yelp.com'))
@@ -88,15 +78,9 @@ function admin(resp){
 function router(resp,req){
 	var obj= {
 		on:function(url,func){
-			if(req.url.indexOf(url)===0){func(resp,req)}
+			if(req.url.indexOf(url)==0){func(resp,req)}
 			return obj;
 		}
-	};
+	}
 	return obj;
 }
-
-
-
-
-
-

@@ -1,6 +1,8 @@
 package httpmappings
 
 import (
+	"io/ioutil"
+	"log"
 	"net/http"
 
 	"./../pluginbase"
@@ -22,9 +24,32 @@ func InitPlugin() *pluginbase.Plugin {
 				return otto.TrueValue()
 			})
 		},
+		HttpMapping: pluginbase.FuncMapping{
+			"writefile": func(w http.ResponseWriter, r *http.Request) {
+				writeMainJs(w, r)
+			},
+		},
 	}
 
 	return &p
+}
+
+func logError(err error) {
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func writeMainJs(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	mainjs := r.FormValue("mainjs")
+	if mainjs != "" {
+		fileContent, err := ioutil.ReadFile("./js/main.js")
+		logError(err)
+		err = ioutil.WriteFile("./js/main.js.bak", fileContent, 0777)
+		logError(err)
+	}
+	ioutil.WriteFile("./js/main.js", []byte(mainjs), 0777)
 }
 
 func AddMapping(url string, name string) {

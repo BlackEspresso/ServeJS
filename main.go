@@ -41,7 +41,6 @@ func main() {
 
 	addPlugins()
 	http.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.URL.Path[1:])
 		http.ServeFile(w, r, r.URL.Path[1:])
 	})
 	http.HandleFunc("/", jsHandler)
@@ -116,8 +115,6 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 
 	phttp.JsObjectToResponse(objResponse, w)
 
-	//str, _ := ret.ToString()
-	//w.Write([]byte(str))
 }
 
 func addPlugin(p *pluginbase.Plugin) {
