@@ -11,6 +11,7 @@ function onRequest(resp,req){
 		.on('/editjs',editjs)
 		.on('/boerse',boerse)
 		.on('/scandns',scandns)
+		.on('/schedule',schedule)
 
 	addMapping('/websocket','websocket')
 	addMapping('/writefile','writefile')
@@ -59,12 +60,11 @@ function scandns(resp,req){
         		continue;
             resp.write(JSON.stringify(matches));
             if(x+1<lines.length && x+1<count){
-                resp.write(',\n')
+                resp.write(',\n');
             }
         }
     }
-    resp.write('\n]')
-
+    resp.write('\n]');
 }
 
 function editjs(resp,req){
@@ -102,6 +102,15 @@ function hello(resp,req){
 	resp.write('hello')
 }
 
+function schedule(resp,req){
+    addTask('test',0,function(){
+        var cmd = runCmd('cmd','/c','dir');
+        console.log(cmd.Suc,cmd.Err)
+    });
+	startTasks()
+	resp.write('scheduled')
+}
+
 function login(resp,req){
 	//reloadTemplates();
 	loadMailSettings();
@@ -110,9 +119,7 @@ function login(resp,req){
 		resp.write(JSON.stringify(settings))
 		//resp.write("hello")
 		//writeFile('static','test.html','<html>')
-		//resp.write(resolve('m.yelp.com'))
-		//resp.write(addTask('test',0,function(){console.log('ok')}))
-		//startTasks()
+		
 		//resp.write(runTemplate("login.thtml",{Name:"v"}))
 		//resp.write(JSON.stringify(req.formValues))
 		//resp.write(JSON.stringify(readDir('static')))

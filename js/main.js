@@ -11,6 +11,7 @@ function onRequest(resp,req){
 		.on('/editjs',editjs)
 		.on('/boerse',boerse)
 		.on('/scandns',scandns)
+		.on('/schedule',schedule)
 
 	addMapping('/websocket','websocket')
 	addMapping('/writefile','writefile')
@@ -101,23 +102,24 @@ function hello(resp,req){
 	resp.write('hello')
 }
 
+function schedule(resp,req){
+    addTask('test',0,function(){
+        var cmd = runCmd('cmd','/c','dir');
+        console.log(cmd.Suc,cmd.Err)
+    });
+	startTasks()
+	resp.write('scheduled')
+}
+
 function login(resp,req){
-	//reloadTemplates();
 	loadMailSettings();
 	if(req.method=='GET'){
-		//resp.write()
-		resp.write(JSON.stringify(settings))
-		//resp.write("hello")
-		//writeFile('static','test.html','<html>')
-		//resp.write(resolve('m.yelp.com'))
-		//resp.write(addTask('test',0,function(){console.log('ok')}))
-		//startTasks()
-		//resp.write(runTemplate("login.thtml",{Name:"v"}))
-		//resp.write(JSON.stringify(req.formValues))
+		resp.write(runTemplate("login.thtml",{Name:"v"}))
 		//resp.write(JSON.stringify(readDir('static')))
+		//writeFile('static','test.html','<html>')
 	}
 	else{
-		//resp.write('logged in. no. kidding. password wrong')
+		resp.write('logged in. no. kidding. password wrong')
 	}
 }
 
