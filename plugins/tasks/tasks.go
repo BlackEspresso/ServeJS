@@ -45,6 +45,9 @@ func InitPlugin() *pluginbase.Plugin {
 						tb.ErrorText = err.Error()
 					}
 					tb.SuccessText, _ = val.ToString()
+					if tb.Repeat > 0 {
+						tb.Start.Add(time.Second * time.Duration(tb.Repeat))
+					}
 				}
 				tasks = append(tasks, &t)
 				return otto.TrueValue()
@@ -61,7 +64,7 @@ func InitPlugin() *pluginbase.Plugin {
 
 func RunTasks() {
 	for _, v := range tasks {
-		if !v.Done && time.Now().Sub(v.Start).Seconds() > 0 {
+		if !v.Done && time.Now().After(v.Start) {
 			v.Func(v)
 		}
 	}

@@ -14,20 +14,16 @@ type Plugin struct {
 	Disabled    bool
 	HttpMapping map[string]func(w http.ResponseWriter, r *http.Request)
 }
-type Result struct {
-	Suc interface{}
-	Err interface{}
-}
 
 type JSCall func(otto.FunctionCall) otto.Value
 type PluginInit func(*otto.Otto)
 
 func ToResult(vm *otto.Otto, success interface{}, err error) otto.Value {
-	res := Result{}
+	res, _ := vm.Object("{}")
 	if err != nil {
-		res.Err = err.Error()
+		res.Set("error", err.Error())
 	} else {
-		res.Suc = success
+		res.Set("succ", success)
 	}
 	resV, _ := vm.ToValue(res)
 	return resV

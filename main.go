@@ -114,8 +114,8 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 
 	objRequest, _ := vm.Object("({})")
 	objResponse, _ := vm.Object("({})")
-	phttp.RequestToJSObject(objRequest, r)
-	phttp.ResponseWriterToJSObject(objResponse, w)
+	phttp.RequestToJso(objRequest, r)
+	phttp.ResponseWriterToJso(objResponse, w)
 
 	_, err = vm.Call("onRequest", nil, objResponse, objRequest)
 	if err != nil {
@@ -123,8 +123,7 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 
-	phttp.JsObjectToResponse(objResponse, w)
-
+	phttp.JsoToResponseWriter(objResponse, w)
 }
 
 func addPlugin(p *pluginbase.Plugin) {

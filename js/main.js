@@ -29,7 +29,8 @@ function datetime(resp,req){
 function boerse(resp,req){
     var symbol = req.formValues.symbol;
     var url = 'http://finance.yahoo.com/webservice/v1/symbols/'+symbol+'/quote?format=json';
-    var siteResp = httpDo({url:url,method:'GET'});
+    var siteResp = http.do({url:url});
+    //resp.write(JSON.stringify(siteResp))
     var serviceResp = JSON.parse(siteResp.body);
     //resp.write(JSON.stringify(JSON.parse(siteResp.body),null,2))
     resp.write(serviceResp.list.resources[0].resource.fields.name);

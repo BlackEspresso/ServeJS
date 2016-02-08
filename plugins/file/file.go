@@ -23,40 +23,30 @@ func InitPlugin() *pluginbase.Plugin {
 				folder, _ := c.Argument(0).ToString()
 				file, _ := c.Argument(1).ToString()
 				data, err := ioutil.ReadFile("./" + folder + "/" + file)
-				res := pluginbase.Result{}
-				if err != nil {
-					res.Err = err.Error()
-				} else {
-					res.Suc = string(data)
-				}
-				resV, _ := vm.ToValue(res)
-				return resV
+
+				return pluginbase.ToResult(vm, data, err)
 			})
 
 			vm.Set("readDir", func(c otto.FunctionCall) otto.Value {
 				folder, _ := c.Argument(0).ToString()
 				fileInfos, err := ioutil.ReadDir("./" + folder)
-				res := pluginbase.Result{}
 
 				if err != nil {
-					res.Err = err.Error()
-				} else {
-
-					jsFileInfos := []*JsFileInfo{}
-
-					for _, v := range fileInfos {
-						fi := JsFileInfo{
-							v.Name(),
-							v.Size(),
-							v.IsDir(),
-						}
-						jsFileInfos = append(jsFileInfos, &fi)
-					}
-					res.Suc = jsFileInfos
-
+					return pluginbase.ToResult(vm, nil, err)
 				}
-				resV, _ := vm.ToValue(res)
-				return resV
+
+				jsFileInfos := []*JsFileInfo{}
+
+				for _, v := range fileInfos {
+					fi := JsFileInfo{
+						v.Name(),
+						v.Size(),
+						v.IsDir(),
+					}
+					jsFileInfos = append(jsFileInfos, &fi)
+				}
+
+				return pluginbase.ToResult(vm, jsFileInfos, err)
 			})
 		},
 	}
