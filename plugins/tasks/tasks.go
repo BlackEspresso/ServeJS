@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"time"
 
 	"./../pluginbase"
@@ -10,8 +11,9 @@ import (
 type TaskFunc func(*TaskBlock)
 
 type TaskBlock struct {
+	Id          int
 	Name        string
-	Start       int64
+	Start       time.Time
 	Repeat      int
 	RunTime     int
 	Done        bool
@@ -31,10 +33,18 @@ func InitPlugin() *pluginbase.Plugin {
 			vm.Set("addTask", func(c otto.FunctionCall) otto.Value {
 				t := TaskBlock{}
 				t.Name, _ = c.Argument(0).ToString()
-				t.Start, _ = c.Argument(1).ToInteger()
+				startTimeStr := c.Argument(1).String()
+				startTime, _ := time.Parse(time.RFC1123, startTimeStr)
+				fmt.Println(startTimeStr, startTime)
+				t.Start = startTime
 				fs := c.Argument(2)
 				t.Func = func(tb *TaskBlock) {
-					fs.Call(otto.Value{})
+					val, err := fs.Call(otto.Value{})
+					tb.Done = true
+					if err != nil {
+						tb.ErrorText = err.Error()
+					}
+					tb.SuccessText, _ = val.ToString()
 				}
 				tasks = append(tasks, &t)
 				return otto.TrueValue()
@@ -51,7 +61,7 @@ func InitPlugin() *pluginbase.Plugin {
 
 func RunTasks() {
 	for _, v := range tasks {
-		if !v.Done {
+		if !v.Done && time.Now().Sub(v.Start).Seconds() > 0 {
 			v.Func(v)
 		}
 	}

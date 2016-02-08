@@ -1,3 +1,10 @@
+function onServerStart(){
+	addMapping('/websocket','websocket');
+	addMapping('/writefile','writefile');
+	startTasks()
+	console.log('started');
+}
+
 function onRequest(resp,req){
 	resp.contentType='text/html'
 	//return JSON.stringify(req.cookies);
@@ -12,9 +19,11 @@ function onRequest(resp,req){
 		.on('/boerse',boerse)
 		.on('/scandns',scandns)
 		.on('/schedule',schedule)
+		.on('/datetime',datetime)
+}
 
-	addMapping('/websocket','websocket')
-	addMapping('/writefile','writefile')
+function datetime(resp,req){
+	resp.write(new Date().toString())
 }
 
 function boerse(resp,req){
@@ -103,11 +112,14 @@ function hello(resp,req){
 }
 
 function schedule(resp,req){
-    addTask('test',0,function(){
-        var cmd = runCmd('cmd','/c','dir');
-        console.log(cmd.Suc,cmd.Err)
+	var d = new Date();
+	d.setMinutes(d.getMinutes()+1);
+
+    addTask('test',d,function(){
+        //var cmd = runCmd('cmd','/c','dir');
+        console.log('task started: ' + new Date())
     });
-	startTasks()
+	
 	resp.write('scheduled')
 }
 

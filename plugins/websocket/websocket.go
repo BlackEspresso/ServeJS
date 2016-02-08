@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -13,7 +12,7 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
-func InitPlugin(createVM func() *otto.Otto) *pluginbase.Plugin {
+func InitPlugin(createVM func() (*otto.Otto, error)) *pluginbase.Plugin {
 	p := pluginbase.Plugin{
 		Name: "websocket",
 		Init: func(vm *otto.Otto) {},
@@ -27,16 +26,17 @@ func InitPlugin(createVM func() *otto.Otto) *pluginbase.Plugin {
 	return &p
 }
 
-func doWebSocket(w http.ResponseWriter, r *http.Request, createVM func() *otto.Otto) {
+func doWebSocket(w http.ResponseWriter, r *http.Request,
+	createVM func() (*otto.Otto, error)) {
+
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
 	defer c.Close()
-	vm := createVM()
-	fileC, err := ioutil.ReadFile("./js/main.js")
-	_, err = vm.Run(string(fileC))
+	vm, err := createVM()
+
 	fmt.Println("websocket start")
 
 	for {

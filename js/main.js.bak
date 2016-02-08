@@ -1,3 +1,9 @@
+function onServerStart(){
+	addMapping('/websocket','websocket')
+	addMapping('/writefile','writefile')
+	console.log('started')
+}
+
 function onRequest(resp,req){
 	resp.contentType='text/html'
 	//return JSON.stringify(req.cookies);
@@ -12,9 +18,6 @@ function onRequest(resp,req){
 		.on('/boerse',boerse)
 		.on('/scandns',scandns)
 		.on('/schedule',schedule)
-
-	addMapping('/websocket','websocket')
-	addMapping('/writefile','writefile')
 }
 
 function boerse(resp,req){
@@ -112,20 +115,14 @@ function schedule(resp,req){
 }
 
 function login(resp,req){
-	//reloadTemplates();
 	loadMailSettings();
 	if(req.method=='GET'){
-		//resp.write()
-		resp.write(JSON.stringify(settings))
-		//resp.write("hello")
-		//writeFile('static','test.html','<html>')
-		
-		//resp.write(runTemplate("login.thtml",{Name:"v"}))
-		//resp.write(JSON.stringify(req.formValues))
+		resp.write(runTemplate("login.thtml",{Name:"v"}))
 		//resp.write(JSON.stringify(readDir('static')))
+		//writeFile('static','test.html','<html>')
 	}
 	else{
-		//resp.write('logged in. no. kidding. password wrong')
+		resp.write('logged in. no. kidding. password wrong')
 	}
 }
 
