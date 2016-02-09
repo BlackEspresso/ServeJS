@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"./plugins/cache"
 	"./plugins/cmd"
 	"./plugins/dns"
 	"./plugins/file"
@@ -78,6 +79,8 @@ func addPlugins() {
 	p = websocket.InitPlugin(newJSRuntime)
 	addPlugin(p)
 	p = httpmappings.InitPlugin()
+	addPlugin(p)
+	p = cache.InitPlugin()
 	addPlugin(p)
 }
 

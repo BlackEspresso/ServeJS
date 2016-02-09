@@ -18,13 +18,12 @@ type Plugin struct {
 type JSCall func(otto.FunctionCall) otto.Value
 type PluginInit func(*otto.Otto)
 
-func ToResult(vm *otto.Otto, success interface{}, err error) otto.Value {
-	res, _ := vm.Object("{}")
+func ToResult(vm *otto.Otto, valOk interface{}, err error) otto.Value {
+	res, _ := vm.Object("({})")
 	if err != nil {
 		res.Set("error", err.Error())
 	} else {
-		res.Set("succ", success)
+		res.Set("val", valOk)
 	}
-	resV, _ := vm.ToValue(res)
-	return resV
+	return res.Value()
 }

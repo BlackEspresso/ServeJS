@@ -25,11 +25,12 @@ func registerVM(vm *otto.Otto) {
 		req := JsoToRequest(arg1.Object())
 
 		client := &http.Client{}
-		resp, _ := client.Do(req)
+		resp, err := client.Do(req)
 
 		respObj, _ := vm.Object("({})")
 		ResponseToJso(respObj, resp)
-		return respObj.Value()
+
+		return pluginbase.ToResult(vm, respObj, err)
 	})
 }
 
@@ -67,6 +68,9 @@ func JsoToResponseWriter(respObj *otto.Object, w http.ResponseWriter) {
 		w.Header().Set("Content-Type", contentType)
 	}
 
+	wHeader := w.Header()
+	setHeader(respObj, &wHeader)
+
 	codeV, err := respObj.Get("statusCode")
 	if err == nil && codeV.IsDefined() {
 		code, _ := codeV.ToInteger()
@@ -74,25 +78,33 @@ func JsoToResponseWriter(respObj *otto.Object, w http.ResponseWriter) {
 	}
 }
 
-func JsoToRequest(o *otto.Object) *http.Request {
-	//var buffer := bytes.NewReader()
-	url, _ := o.Get("url")
+func setHeader(o *otto.Object, h *http.Header) {
 	header, _ := o.Get("header")
+	headerIface, _ := header.Export()
+	headerMap, ok := headerIface.(map[string]interface{})
+
+	if ok {
+		for k, v := range headerMap {
+			strV, ok := v.(string)
+			if ok {
+				h.Set(k, strV)
+			}
+		}
+	}
+}
+
+func JsoToRequest(o *otto.Object) *http.Request {
+	url, _ := o.Get("url")
 	method, err := o.Get("method")
 	methodStr, err := method.ToString()
 	if method == otto.UndefinedValue() || err != nil {
 		methodStr = "GET"
 	}
-
 	urlStr, _ := url.ToString()
-	headerIface, err := header.Export()
 
 	req, _ := http.NewRequest(methodStr, urlStr, nil)
-	headerMap, ok := headerIface.(map[string]string)
-	if ok {
-		for k, h := range headerMap {
-			req.Header.Add(k, h)
-		}
-	}
+
+	setHeader(o, &req.Header)
+
 	return req
 }

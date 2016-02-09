@@ -20,7 +20,29 @@ function onRequest(resp,req){
 		.on('/scandns',scandns)
 		.on('/schedule',schedule)
 		.on('/datetime',datetime)
+		.on('/cache',cacheFunc)
+		.on('/header',header)
 }
+
+
+function header(resp,req){
+	resp.header = {
+		'Set-Cookie':'c=5',
+		'Test-Header':'4'
+	}
+}
+
+function cacheFunc(resp,req){
+	var key = req.formValues.key;
+	var val = req.formValues.value;
+	if (val == null){
+		resp.write(cache.get(key))
+	}else{
+		cache.set(key,val);
+		resp.write('ok')
+	}
+	cache.save('./static/cache.json')
+} 
 
 function datetime(resp,req){
 	resp.write(new Date().toString())
@@ -31,7 +53,7 @@ function boerse(resp,req){
     var url = 'http://finance.yahoo.com/webservice/v1/symbols/'+symbol+'/quote?format=json';
     var siteResp = http.do({url:url});
     //resp.write(JSON.stringify(siteResp))
-    var serviceResp = JSON.parse(siteResp.body);
+    var serviceResp = JSON.parse(siteResp.val.body);
     //resp.write(JSON.stringify(JSON.parse(siteResp.body),null,2))
     resp.write(serviceResp.list.resources[0].resource.fields.name);
     resp.write('\n')
@@ -79,8 +101,8 @@ function scandns(resp,req){
 
 function editjs(resp,req){
 	reloadTemplates();
-	var js = readFile('js','main.js');
-	var tmpl = runTemplate("EditJs.thtml",{MainJs:js.Suc});
+	var js = readFile('./js/main.js');
+	var tmpl = runTemplate("EditJs.thtml",{MainJs:js.val});
 	resp.write(tmpl)
 }
 

@@ -20,11 +20,13 @@ func InitPlugin() *pluginbase.Plugin {
 			vm.Set("writeFile", writeFile)
 
 			vm.Set("readFile", func(c otto.FunctionCall) otto.Value {
-				folder, _ := c.Argument(0).ToString()
-				file, _ := c.Argument(1).ToString()
-				data, err := ioutil.ReadFile("./" + folder + "/" + file)
+				path, err := c.Argument(0).ToString()
+				if err != nil {
+					return pluginbase.ToResult(vm, nil, err)
+				}
+				data, err := ioutil.ReadFile(path)
 
-				return pluginbase.ToResult(vm, data, err)
+				return pluginbase.ToResult(vm, string(data), err)
 			})
 
 			vm.Set("readDir", func(c otto.FunctionCall) otto.Value {
