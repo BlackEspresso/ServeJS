@@ -27,10 +27,11 @@ func registerVM(vm *otto.Otto) {
 	obj.Set("loadTags", func(c otto.FunctionCall) otto.Value {
 		path, err := c.Argument(0).ToString()
 		tags, err := LoadTagsFromFile(path)
-		if err != nil {
+		if err == nil {
 			validater.AddValidTags(tags)
+			return otto.TrueValue()
 		}
-		return otto.TrueValue()
+		return otto.FalseValue()
 	})
 	obj.Set("validate", func(c otto.FunctionCall) otto.Value {
 		htmltext, _ := c.Argument(0).ToString()
