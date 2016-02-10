@@ -9,6 +9,7 @@ import (
 	"./plugins/cmd"
 	"./plugins/dns"
 	"./plugins/file"
+	"./plugins/htmlcheck"
 	phttp "./plugins/http"
 	"./plugins/httpmappings"
 	"./plugins/mail"
@@ -81,6 +82,8 @@ func addPlugins() {
 	p = httpmappings.InitPlugin()
 	addPlugin(p)
 	p = cache.InitPlugin()
+	addPlugin(p)
+	p = htmlcheck.InitPlugin()
 	addPlugin(p)
 }
 

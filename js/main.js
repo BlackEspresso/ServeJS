@@ -22,8 +22,13 @@ function onRequest(resp,req){
 		.on('/datetime',datetime)
 		.on('/cache',cacheFunc)
 		.on('/header',header)
+		.on('/htmlcheck',htmlCheck)
 }
 
+function htmlCheck(resp,req){
+	var err = htmlcheck.validate('<a href="">test</a>')
+	resp.write(JSON.stringify(err))
+}
 
 function header(resp,req){
 	resp.header = {
