@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
@@ -13,18 +13,20 @@ type ServeFunc func(w http.ResponseWriter, r *http.Request)
 
 var urlMapping map[string]string = map[string]string{}
 
-func InitPlugin() *pluginbase.Plugin {
-	p := pluginbase.Plugin{
-		Name: "httpmapping",
-		Init: func(vm *otto.Otto) {
-			vm.Set("addMapping", func(c otto.FunctionCall) otto.Value {
+func InitPlugin() *modules.Plugin {
+	p := modules.Plugin{
+		Name: "httpmappings",
+		Init: func(vm *otto.Otto) otto.Value {
+			obj, _ := vm.Object("({})")
+			obj.Set("addMapping", func(c otto.FunctionCall) otto.Value {
 				url, _ := c.Argument(0).ToString()
 				name, _ := c.Argument(1).ToString()
 				AddMapping(url, name)
 				return otto.TrueValue()
 			})
+			return obj.Value()
 		},
-		HttpMapping: pluginbase.FuncMapping{
+		HttpMapping: modules.FuncMapping{
 			"writefile": func(w http.ResponseWriter, r *http.Request) {
 				writeMainJs(w, r)
 			},
@@ -56,7 +58,7 @@ func AddMapping(url string, name string) {
 	urlMapping[url] = name
 }
 
-func RunMappings(w http.ResponseWriter, r *http.Request, plugins []*pluginbase.Plugin) bool {
+func RunMappings(w http.ResponseWriter, r *http.Request, plugins []*modules.Plugin) bool {
 	url := r.URL.Path
 	funcName, ok := urlMapping[url]
 	if ok {

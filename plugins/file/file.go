@@ -3,7 +3,7 @@ package file
 import (
 	"io/ioutil"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
@@ -13,28 +13,29 @@ type JsFileInfo struct {
 	IsDir bool
 }
 
-func InitPlugin() *pluginbase.Plugin {
-	p := pluginbase.Plugin{
+func InitPlugin() *modules.Plugin {
+	p := modules.Plugin{
 		Name: "file",
-		Init: func(vm *otto.Otto) {
-			vm.Set("writeFile", writeFile)
+		Init: func(vm *otto.Otto) otto.Value {
+			obj, _ := vm.Object("({})")
+			obj.Set("writeFile", writeFile)
 
-			vm.Set("readFile", func(c otto.FunctionCall) otto.Value {
+			obj.Set("readFile", func(c otto.FunctionCall) otto.Value {
 				path, err := c.Argument(0).ToString()
 				if err != nil {
-					return pluginbase.ToResult(vm, nil, err)
+					return modules.ToResult(vm, nil, err)
 				}
 				data, err := ioutil.ReadFile(path)
 
-				return pluginbase.ToResult(vm, string(data), err)
+				return modules.ToResult(vm, string(data), err)
 			})
 
-			vm.Set("readDir", func(c otto.FunctionCall) otto.Value {
+			obj.Set("readDir", func(c otto.FunctionCall) otto.Value {
 				folder, _ := c.Argument(0).ToString()
 				fileInfos, err := ioutil.ReadDir("./" + folder)
 
 				if err != nil {
-					return pluginbase.ToResult(vm, nil, err)
+					return modules.ToResult(vm, nil, err)
 				}
 
 				jsFileInfos := []*JsFileInfo{}
@@ -48,8 +49,9 @@ func InitPlugin() *pluginbase.Plugin {
 					jsFileInfos = append(jsFileInfos, &fi)
 				}
 
-				return pluginbase.ToResult(vm, jsFileInfos, err)
+				return modules.ToResult(vm, jsFileInfos, err)
 			})
+			return obj.Value()
 		},
 	}
 	return &p

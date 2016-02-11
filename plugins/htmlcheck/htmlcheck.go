@@ -6,13 +6,13 @@ import (
 
 	"github.com/BlackEspresso/htmlcheck"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
-func InitPlugin() *pluginbase.Plugin {
+func InitPlugin() *modules.Plugin {
 
-	p1 := pluginbase.Plugin{
+	p1 := modules.Plugin{
 		Name: "htmlcheck",
 		Init: registerVM,
 	}
@@ -20,10 +20,10 @@ func InitPlugin() *pluginbase.Plugin {
 	return &p1
 }
 
-func registerVM(vm *otto.Otto) {
+func registerVM(vm *otto.Otto) otto.Value {
 	validater := htmlcheck.Validator{}
 	obj, _ := vm.Object("({})")
-	vm.Set("htmlcheck", obj)
+
 	obj.Set("loadTags", func(c otto.FunctionCall) otto.Value {
 		path, err := c.Argument(0).ToString()
 		tags, err := LoadTagsFromFile(path)
@@ -39,6 +39,7 @@ func registerVM(vm *otto.Otto) {
 		objs, _ := vm.ToValue(errors)
 		return objs
 	})
+	return obj.Value()
 }
 
 func LoadTagsFromFile(path string) ([]htmlcheck.ValidTag, error) {

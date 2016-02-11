@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"html/template"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
 var templates *template.Template
 
-func InitPlugin() *pluginbase.Plugin {
+func InitPlugin() *modules.Plugin {
 	templates, _ = template.ParseGlob("./tmpl/*.thtml")
 
-	p1 := pluginbase.Plugin{
+	p1 := modules.Plugin{
 		Name: "template",
-		Init: func(vm *otto.Otto) {
-			vm.Set("runTemplate", func(c otto.FunctionCall) otto.Value {
+		Init: func(vm *otto.Otto) otto.Value {
+			obj, _ := vm.Object("({})")
+			obj.Set("runTemplate", func(c otto.FunctionCall) otto.Value {
 				name, _ := c.Argument(0).ToString()
 				jsObject := c.Argument(1).Object()
 
@@ -41,7 +42,8 @@ func InitPlugin() *pluginbase.Plugin {
 				return retV
 			})
 
-			vm.Set("reloadTemplates", reloadTemplates)
+			obj.Set("reloadTemplates", reloadTemplates)
+			return obj.Value()
 		},
 	}
 

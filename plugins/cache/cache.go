@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
 var kvCache map[string]string = map[string]string{}
 
-func InitPlugin() *pluginbase.Plugin {
+func InitPlugin() *modules.Plugin {
 
-	p1 := pluginbase.Plugin{
+	p1 := modules.Plugin{
 		Name: "cache",
 		Init: registerVM,
 	}
@@ -20,9 +20,9 @@ func InitPlugin() *pluginbase.Plugin {
 	return &p1
 }
 
-func registerVM(vm *otto.Otto) {
+func registerVM(vm *otto.Otto) otto.Value {
 	obj, _ := vm.Object("({})")
-	vm.Set("cache", obj)
+
 	obj.Set("set", func(c otto.FunctionCall) otto.Value {
 		key, _ := c.Argument(0).ToString()
 		val, _ := c.Argument(1).ToString()
@@ -39,11 +39,11 @@ func registerVM(vm *otto.Otto) {
 		path, _ := c.Argument(0).ToString()
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			return pluginbase.ToResult(vm, nil, err)
+			return modules.ToResult(vm, nil, err)
 		}
 		err = json.Unmarshal(content, &kvCache)
 		if err != nil {
-			return pluginbase.ToResult(vm, nil, err)
+			return modules.ToResult(vm, nil, err)
 		}
 
 		return otto.TrueValue()
@@ -61,4 +61,5 @@ func registerVM(vm *otto.Otto) {
 		delete(kvCache, key)
 		return otto.TrueValue()
 	})
+	return obj.Value()
 }

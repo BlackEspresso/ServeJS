@@ -4,21 +4,20 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
-func InitPlugin() *pluginbase.Plugin {
-	p := pluginbase.Plugin{
+func InitPlugin() *modules.Plugin {
+	p := modules.Plugin{
 		Name: "file",
 		Init: registerVM,
 	}
 	return &p
 }
 
-func registerVM(vm *otto.Otto) {
+func registerVM(vm *otto.Otto) otto.Value {
 	obj, _ := vm.Object("({})")
-	vm.Set("http", obj)
 
 	obj.Set("do", func(c otto.FunctionCall) otto.Value {
 		arg1 := c.Argument(0)
@@ -30,8 +29,9 @@ func registerVM(vm *otto.Otto) {
 		respObj, _ := vm.Object("({})")
 		ResponseToJso(respObj, resp)
 
-		return pluginbase.ToResult(vm, respObj, err)
+		return modules.ToResult(vm, respObj, err)
 	})
+	return obj.Value()
 }
 
 func ResponseToJso(o *otto.Object, w *http.Response) {

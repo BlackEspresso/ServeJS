@@ -13,7 +13,7 @@ import (
 	phttp "./plugins/http"
 	"./plugins/httpmappings"
 	"./plugins/mail"
-	"./plugins/pluginbase"
+	"./plugins/modules"
 	"./plugins/tasks"
 	"./plugins/templating"
 	"./plugins/websocket"
@@ -21,8 +21,6 @@ import (
 	"github.com/robertkrimen/otto"
 	"gopkg.in/yaml.v2"
 )
-
-var plugins []*pluginbase.Plugin = []*pluginbase.Plugin{}
 
 type Configuration struct {
 	Port    int
@@ -41,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	addPlugins()
+	registerPlugins()
 
 	vm, err := newJSRuntime()
 	if err != nil {
@@ -60,38 +58,23 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
-func addPlugins() {
-	p := templating.InitPlugin()
-	addPlugin(p)
-	p = file.InitPlugin()
-	addPlugin(p)
-	p = dns.InitPlugin()
-	addPlugin(p)
-	p = tasks.InitPlugin()
-	addPlugin(p)
-	p = mail.InitPlugin()
-	addPlugin(p)
-	p = cmd.InitPlugin()
-	addPlugin(p)
-	p = phttp.InitPlugin()
-	addPlugin(p)
-	p = phttp.InitPlugin()
-	addPlugin(p)
-	p = websocket.InitPlugin(newJSRuntime)
-	addPlugin(p)
-	p = httpmappings.InitPlugin()
-	addPlugin(p)
-	p = cache.InitPlugin()
-	addPlugin(p)
-	p = htmlcheck.InitPlugin()
-	addPlugin(p)
+func registerPlugins() {
+	modules.AddPlugin(templating.InitPlugin())
+	modules.AddPlugin(file.InitPlugin())
+	modules.AddPlugin(dns.InitPlugin())
+	modules.AddPlugin(tasks.InitPlugin())
+	modules.AddPlugin(mail.InitPlugin())
+	modules.AddPlugin(cmd.InitPlugin())
+	modules.AddPlugin(phttp.InitPlugin())
+	modules.AddPlugin(websocket.InitPlugin(newJSRuntime))
+	modules.AddPlugin(httpmappings.InitPlugin())
+	modules.AddPlugin(cache.InitPlugin())
+	modules.AddPlugin(htmlcheck.InitPlugin())
 }
 
 func newJSRuntime() (*otto.Otto, error) {
 	vm := otto.New()
-	for _, v := range plugins {
-		v.Init(vm)
-	}
+	modules.RegisterRequire(vm)
 
 	vm.Set("settings", serverConf)
 	fileC, err := ioutil.ReadFile("./js/main.js")
@@ -105,7 +88,7 @@ func newJSRuntime() (*otto.Otto, error) {
 
 func jsHandler(w http.ResponseWriter, r *http.Request) {
 
-	ret := httpmappings.RunMappings(w, r, plugins)
+	ret := httpmappings.RunMappings(w, r, modules.GetPlugins())
 	if ret {
 		// httpmappings has process this mapping
 		return
@@ -130,8 +113,4 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	phttp.JsoToResponseWriter(objResponse, w)
-}
-
-func addPlugin(p *pluginbase.Plugin) {
-	plugins = append(plugins, p)
 }

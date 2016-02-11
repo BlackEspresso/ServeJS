@@ -5,18 +5,18 @@ import (
 	"log"
 	"net/http"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/gorilla/websocket"
 	"github.com/robertkrimen/otto"
 )
 
 var upgrader = websocket.Upgrader{}
 
-func InitPlugin(createVM func() (*otto.Otto, error)) *pluginbase.Plugin {
-	p := pluginbase.Plugin{
+func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
+	p := modules.Plugin{
 		Name: "websocket",
-		Init: func(vm *otto.Otto) {},
-		HttpMapping: pluginbase.FuncMapping{
+		Init: func(vm *otto.Otto) otto.Value { return otto.UndefinedValue() },
+		HttpMapping: modules.FuncMapping{
 			"websocket": func(w http.ResponseWriter, r *http.Request) {
 				doWebSocket(w, r, createVM)
 			},

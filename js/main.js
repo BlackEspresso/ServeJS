@@ -1,7 +1,10 @@
 function onServerStart(){
-	addMapping('/websocket','websocket');
-	addMapping('/writefile','writefile');
-	startTasks()
+	var m = require('httpmappings')
+	var t = require('tasks')
+	console.log(m)
+	m.addMapping('/websocket','websocket');
+	m.addMapping('/writefile','writefile');
+	t.startTasks()
 	console.log('started');
 }
 
@@ -26,7 +29,15 @@ function onRequest(resp,req){
 }
 
 function htmlCheck(resp,req){
-	var err = htmlcheck.validate('<a href="">test</a>')
+    var url = req.formValues.url;
+    if(url==null){
+        resp.write('url is empty')
+        return
+    }
+    var cResp = http.do({url:url});
+    htmlcheck.loadTags('./static/tags.json')
+    
+	var err = htmlcheck.validate(cResp.val.body)
 	resp.write(JSON.stringify(err))
 }
 
@@ -129,10 +140,10 @@ function mailTo(resp,req){
 function run(resp,req){
 	resp.contentType='text/plain'
 	var cmd = runCmd('echo','4','5')
-	if(cmd.Suc)
-		resp.write(cmd.Suc);
+	if(cmd.val)
+		resp.write(cmd.val);
 	else
-		resp.write(cmd.Err);
+		resp.write(cmd.error);
 }
 
 function hello(resp,req){

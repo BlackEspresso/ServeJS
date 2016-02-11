@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
@@ -25,12 +25,13 @@ type TaskBlock struct {
 
 var tasks []*TaskBlock = []*TaskBlock{}
 
-func InitPlugin() *pluginbase.Plugin {
+func InitPlugin() *modules.Plugin {
 
-	p1 := pluginbase.Plugin{
+	p1 := modules.Plugin{
 		Name: "tasks",
-		Init: func(vm *otto.Otto) {
-			vm.Set("addTask", func(c otto.FunctionCall) otto.Value {
+		Init: func(vm *otto.Otto) otto.Value {
+			obj, _ := vm.Object("({})")
+			obj.Set("addTask", func(c otto.FunctionCall) otto.Value {
 				t := TaskBlock{}
 				t.Name, _ = c.Argument(0).ToString()
 				startTimeStr := c.Argument(1).String()
@@ -52,10 +53,11 @@ func InitPlugin() *pluginbase.Plugin {
 				tasks = append(tasks, &t)
 				return otto.TrueValue()
 			})
-			vm.Set("startTasks", func(c otto.FunctionCall) otto.Value {
+			obj.Set("startTasks", func(c otto.FunctionCall) otto.Value {
 				Start()
 				return otto.TrueValue()
 			})
+			return obj.Value()
 		},
 	}
 

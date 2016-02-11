@@ -3,7 +3,7 @@ package mail
 import (
 	"strconv"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 	"gopkg.in/gomail.v1"
 )
@@ -17,16 +17,18 @@ type SMTPSettings struct {
 
 var config SMTPSettings
 
-func InitPlugin() *pluginbase.Plugin {
+func InitPlugin() *modules.Plugin {
 
-	p1 := pluginbase.Plugin{
+	p1 := modules.Plugin{
 		Name: "mail",
-		Init: func(vm *otto.Otto) {
-			vm.Set("loadMailSettings", func(c otto.FunctionCall) otto.Value {
+		Init: func(vm *otto.Otto) otto.Value {
+			o, _ := vm.Object("({})")
+
+			o.Set("loadMailSettings", func(c otto.FunctionCall) otto.Value {
 				loadSettings(vm)
 				return otto.TrueValue()
 			})
-			vm.Set("send", func(c otto.FunctionCall) otto.Value {
+			o.Set("send", func(c otto.FunctionCall) otto.Value {
 				loadSettings(vm)
 				recv, _ := c.Argument(0).ToString()
 				subject, _ := c.Argument(1).ToString()
@@ -34,8 +36,9 @@ func InitPlugin() *pluginbase.Plugin {
 
 				err := sendmail(recv, subject, msg, "")
 
-				return pluginbase.ToResult(vm, true, err)
+				return modules.ToResult(vm, true, err)
 			})
+			return o.Value()
 		},
 	}
 

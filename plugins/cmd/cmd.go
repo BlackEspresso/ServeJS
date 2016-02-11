@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"os/exec"
 
-	"./../pluginbase"
+	"./../modules"
 	"github.com/robertkrimen/otto"
 )
 
-func InitPlugin() *pluginbase.Plugin {
+func InitPlugin() *modules.Plugin {
 
-	p1 := pluginbase.Plugin{
+	p1 := modules.Plugin{
 		Name: "cmd",
-		Init: func(vm *otto.Otto) {
-			vm.Set("runCmd", func(c otto.FunctionCall) otto.Value {
+		Init: func(vm *otto.Otto) otto.Value {
+			obj, _ := vm.Object("({})")
+			obj.Set("runCmd", func(c otto.FunctionCall) otto.Value {
 				list := []string{}
 				for _, v := range c.ArgumentList {
 					str, _ := v.ToString()
@@ -24,8 +25,9 @@ func InitPlugin() *pluginbase.Plugin {
 				var out bytes.Buffer
 				cmd.Stdout = &out
 				err := cmd.Run()
-				return pluginbase.ToResult(vm, out.String(), err)
+				return modules.ToResult(vm, out.String(), err)
 			})
+			return obj.Value()
 		},
 	}
 
