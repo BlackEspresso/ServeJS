@@ -1,11 +1,15 @@
-function onServerStart(){
+function onStart(){
 	var m = require('httpmappings')
 	var t = require('tasks')
-	console.log(m)
+	
 	m.addMapping('/websocket','websocket');
 	m.addMapping('/writefile','writefile');
-	t.startTasks()
-	console.log('started');
+	t.startTasks();
+	
+	var server = require('httplistener')
+	server.requestFuncName = 'onRequest';
+	//server.addr = ':8080'
+	server.startAndWait()
 }
 
 function onRequest(resp,req){
