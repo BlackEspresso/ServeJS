@@ -20,6 +20,10 @@ func InitPlugin() *modules.Plugin {
 	return &p1
 }
 
+func GetCache() map[string]string {
+	return kvCache
+}
+
 func registerVM(vm *otto.Otto) otto.Value {
 	obj, _ := vm.Object("({})")
 

@@ -14,31 +14,15 @@ import (
 	"./plugins/httpmappings"
 	"./plugins/mail"
 	"./plugins/modules"
+	"./plugins/settings"
 	"./plugins/tasks"
 	"./plugins/templating"
 	"./plugins/websocket"
 
 	"github.com/robertkrimen/otto"
-	"gopkg.in/yaml.v2"
 )
 
-type Configuration struct {
-	Port    int
-	Plugins map[string]map[string]string
-}
-
-var serverConf = Configuration{}
-
 func main() {
-	configraw, err := ioutil.ReadFile("./serverjs.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = yaml.Unmarshal(configraw, &serverConf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	registerPlugins()
 
 	vm, err := newJSRuntime()
@@ -65,13 +49,13 @@ func registerPlugins() {
 	modules.AddPlugin(httplistener.InitPlugin(newJSRuntime))
 	modules.AddPlugin(cache.InitPlugin())
 	modules.AddPlugin(htmlcheck.InitPlugin())
+	modules.AddPlugin(settings.InitPlugin())
 }
 
 func newJSRuntime() (*otto.Otto, error) {
 	vm := otto.New()
 	modules.RegisterRequire(vm)
 
-	vm.Set("settings", serverConf)
 	fileC, err := ioutil.ReadFile("./js/main.js")
 	if err != nil {
 		return nil, err

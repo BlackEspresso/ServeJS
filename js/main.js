@@ -1,11 +1,16 @@
 function onStart(){
 	var m = require('httpmappings')
 	var t = require('tasks')
+	var c = require('cache')
 	
 	m.addMapping('/websocket','websocket');
 	m.addMapping('/writefile','writefile');
 	t.startTasks();
 	
+	var yaml = require('settings');
+	var conf = yaml.read('./serverjs.yaml');
+	c.set('settings', JSON.stringify(conf))
+
 	var server = require('httplistener')
 	server.requestFuncName = 'onRequest';
 	//server.addr = ':8080'

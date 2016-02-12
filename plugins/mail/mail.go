@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"./../modules"
+	"./../settings"
 	"github.com/robertkrimen/otto"
 	"gopkg.in/gomail.v1"
 )
@@ -46,21 +47,14 @@ func InitPlugin() *modules.Plugin {
 }
 
 func loadSettings(vm *otto.Otto) {
-	obj, _ := vm.Get("settings")
-	plugins, _ := obj.Object().Get("Plugins")
+	settings := settings.GetSettings()
 
-	mailSettings, _ := plugins.Object().Get("mail")
-	mailObj := mailSettings.Object()
+	mailSettings := settings.Plugins["mail"]
 
-	unameO, _ := mailObj.Get("username")
-	pwO, _ := mailObj.Get("password")
-	snameO, _ := mailObj.Get("servername")
-	portO, _ := mailObj.Get("port")
-
-	uname, _ := unameO.ToString()
-	pw, _ := pwO.ToString()
-	sname, _ := snameO.ToString()
-	portStr, _ := portO.ToString()
+	uname := mailSettings["username"]
+	pw := mailSettings["password"]
+	sname := mailSettings["servername"]
+	portStr := mailSettings["port"]
 
 	config = SMTPSettings{
 		Username:   uname,
