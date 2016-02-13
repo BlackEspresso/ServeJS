@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"encoding/json"
 	"io/ioutil"
 
 	"./../cache"
@@ -40,6 +41,6 @@ func InitPlugin() *modules.Plugin {
 func GetSettings() Configuration {
 	k := cache.GetCache()["settings"]
 	var settings = Configuration{}
-	yaml.Unmarshal([]byte(k), &settings)
+	json.Unmarshal([]byte(k), &settings)
 	return settings
 }

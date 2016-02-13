@@ -19,6 +19,7 @@ import (
 	"./plugins/settings"
 	"./plugins/tasks"
 	"./plugins/templating"
+	"./plugins/time"
 	"./plugins/websocket"
 
 	"github.com/robertkrimen/otto"
@@ -54,6 +55,7 @@ func registerPlugins() {
 	modules.AddPlugin(settings.InitPlugin())
 	modules.AddPlugin(goquery.InitPlugin())
 	modules.AddPlugin(mongodb.InitPlugin())
+	modules.AddPlugin(time.InitPlugin())
 }
 
 func newJSRuntime() (*otto.Otto, error) {

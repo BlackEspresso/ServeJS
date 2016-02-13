@@ -9,7 +9,7 @@ function onStart(){
 	
 	var yaml = require('settings');
 	var conf = yaml.read('./serverjs.yaml');
-	c.set('settings', JSON.stringify(conf))
+	c.set('settings', JSON.stringify(conf.val))
 
 	var server = require('httplistener')
 	server.requestFuncName = 'onRequest';
@@ -38,6 +38,98 @@ function onRequest(resp,req){
 		.on('/header',header)
 		.on('/htmlcheck',htmlCheck)
 		.on('/mongo',mongo)
+		.on('/siteinfo',siteInfo)
+		.on('/sitescan',siteScan)
+		.on('/time',time)
+}
+
+function time(resp,req){
+	var time = require('time');
+	time.sleep(4000)
+	resp.write(4000);
+}
+
+
+function siteScan(resp,req){
+	var urls = req.formValues.url;
+	if(urls==null||urls.length==0){
+		resp.write('url not found')
+	}
+	var url = urls[0];
+	if(url[url.length-1]=="/"){
+		url = url.substr(0,url.length-1);
+	}
+	var count = req.formValues.count;
+	if(count == null)
+		count = 10;
+	var start = req.formValues.start;
+	if(start == null)
+		start = 0;
+
+	console.log(start)
+	var tasks= require('tasks');
+	//resp.write(cache.get('settings'));
+
+	tasks.addTask('test',0,function(){
+        var mail= require('mail');
+        console.log(url)
+        var ret = fuzzUrls(url,count,start);
+
+        mail.send('marinuspfund@googlemail.com',
+        	'scanurl',ret);
+    });
+
+	resp.write('ok');
+	//resp.write(words.length);
+	//resp.write(url)
+}
+
+function fuzzUrls(url,count,start){
+	var http = require('http')
+	var file = require('file')
+	var wordlist = file.readFile('./static/wordlists/KitchensinkDirectories.fuzz.txt');
+	var words = wordlist.val.split('\n');
+
+	var ret = '';
+
+	var startDate = new Date();
+	var time = require('time');
+
+	for(var x = start;x<words.length&&x-start<count;x++){
+		var fullUrl = url + words[x].trim();
+		var cResp = http.do({url:fullUrl});
+		time.sleep(1000);
+		ret += cResp.val.statusCode + '  ' + fullUrl + '\n';
+	}
+	var durationSec = (new Date().getTime()- startDate.getTime())/1000;
+	ret += durationSec + ' seconds\n'
+	return ret;
+}
+
+function siteInfo(resp,req){
+    var url = req.formValues.url[0];
+    var goquery = require('goquery')
+	var http = require('http')
+	var cResp = http.do({url:url});
+	
+	var doc = goquery.newDocument(cResp.val.body)
+	var form = doc.ExtractAttributes('form');
+	var hrefs = doc.ExtractAttributes('a');
+	var scripts = doc.ExtractAttributes('script');
+	var links = doc.ExtractAttributes('link');
+	var zs = doc.ExtractAttributes('z');
+	
+	var ret = {
+	    azs:zs,
+	    header:cResp.val.header,
+	    hrefs:hrefs,
+	    forms:form,
+	    scripts:scripts,
+	    links:links,
+	    cookies:cResp.val.cookies,
+	    status:cResp.val.statusCode
+	}
+	resp.write(JSON.stringify(ret))
 }
 
 function showcache(resp,req){
