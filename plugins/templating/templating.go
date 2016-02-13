@@ -14,7 +14,7 @@ func InitPlugin() *modules.Plugin {
 	templates, _ = template.ParseGlob("./tmpl/*.thtml")
 
 	p1 := modules.Plugin{
-		Name: "template",
+		Name: "templating",
 		Init: func(vm *otto.Otto) otto.Value {
 			obj, _ := vm.Object("({})")
 			obj.Set("runTemplate", func(c otto.FunctionCall) otto.Value {

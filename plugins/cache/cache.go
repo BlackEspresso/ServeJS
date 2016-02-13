@@ -35,8 +35,20 @@ func registerVM(vm *otto.Otto) otto.Value {
 	})
 	obj.Set("get", func(c otto.FunctionCall) otto.Value {
 		key, _ := c.Argument(0).ToString()
-		retV, _ := otto.ToValue(kvCache[key])
+		val, ok := kvCache[key]
+		if !ok {
+			return otto.UndefinedValue()
+		}
+		retV, _ := otto.ToValue(val)
 		return retV
+	})
+
+	obj.Set("all", func(c otto.FunctionCall) otto.Value {
+		kvObj, err := vm.Object("({})")
+		for k, v := range kvCache {
+			kvObj.Set(k, v)
+		}
+		return modules.ToResult(vm, kvObj, err)
 	})
 
 	obj.Set("load", func(c otto.FunctionCall) otto.Value {

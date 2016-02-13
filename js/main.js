@@ -23,10 +23,11 @@ function onRequest(resp,req){
 	router(resp,req)
 		.on('/gquery',gquery)
 		.on('/hello',hello)
+		.on('/showcache',showcache)
 		.on('/mailto', mailTo)
 		.on('/run', run)
 		.on('/login',login)
-		.on('/admin',admin)
+		.on('/register',register)
 		.on('/req',request)
 		.on('/editjs',editjs)
 		.on('/boerse',boerse)
@@ -36,14 +37,50 @@ function onRequest(resp,req){
 		.on('/cache',cacheFunc)
 		.on('/header',header)
 		.on('/htmlcheck',htmlCheck)
+		.on('/mongo',mongo)
+}
+
+function showcache(resp,req){
+	var cache = require('cache');
+	if(!isAuth(req)){
+		redirect(resp,'/login')
+		return
+	}
+	resp.write(JSON.stringify(cache.all()))
+}
+
+function redirect(resp,url){
+	resp.statusCode=302;
+	resp.header = {
+		'Location':url
+	}
+}
+
+function mongo(resp,req){
+	var m = require('mongodb')
+	var sess = m.newSession('localhost')
+	var c= sess.DB('jstest').C('test')
+
+	c.RemoveAll({})
+
+	c.Insert({'Name':'Tester1','Street':'here'})
+
+	c = c.Find({'Name':'Tester1'})
+	for(var x in c){
+		resp.write(x + '\n');
+	}
+
+	var test = m.all(c.Select({'Name':1}));
+
+	resp.write(JSON.stringify(test));
 }
 
 function gquery(resp,req){
-	var g = require('goquery')
+	var goquery = require('goquery')
 	var http = require('http')
 	var cResp = http.do({url:'http://google.com'});
-	var doc = g.newDocument(cResp.val.body)
-	var links = doc.ExtractAttributes("a");
+	var doc = goquery.newDocument(cResp.val.body)
+	var links = doc.ExtractAttributes('body');
 	resp.write(JSON.stringify(links))
 }
 
@@ -65,6 +102,7 @@ function header(resp,req){
 		'Set-Cookie':'c=5',
 		'Test-Header':'4'
 	}
+	resp.write('4')
 }
 
 function cacheFunc(resp,req){
@@ -135,9 +173,15 @@ function scandns(resp,req){
 }
 
 function editjs(resp,req){
-	reloadTemplates();
-	var js = readFile('./js/main.js');
-	var tmpl = runTemplate("EditJs.thtml",{MainJs:js.val});
+	var templ = require('templating');
+	if(!isAuth(req)){
+		redirect(resp,'/login');
+		return;
+	}
+	var file = require('file')
+	templ.reloadTemplates();
+	var js = file.readFile('./js/main.js');
+	var tmpl = templ.runTemplate("EditJs.thtml",{MainJs:js.val});
 	resp.write(tmpl)
 }
 
@@ -181,20 +225,105 @@ function schedule(resp,req){
 	resp.write('scheduled')
 }
 
-function login(resp,req){
-	loadMailSettings();
+function getCollection(mongodb){
+	var sess = mongodb.newSession('localhost')
+	var c = sess.DB('jstest').C('test')
+	return c;
+}
+
+function register(resp,req){
+	var mongodb = require('mongodb')
+	var c = getCollection(mongodb);
+
+	var templating = require('templating');
+	templating.reloadTemplates();
+
 	if(req.method=='GET'){
-		resp.write(runTemplate("login.thtml",{Name:"v"}))
-		//resp.write(JSON.stringify(readDir('static')))
-		//writeFile('static','test.html','<html>')
+		var templ = templating.runTemplate("login.thtml",{ActionName:'register'});
+		resp.write(templ)
 	}
-	else{
-		resp.write('logged in. no. kidding. password wrong')
+	if(req.method=='POST'){
+		var username = req.formValues.username[0];
+		var password = req.formValues.password[0];
+		c.Insert({'Username':username,'Password':password});
 	}
 }
 
-function admin(resp){
-	resp.write("todo")
+
+function getCookie(req,name){
+	var cookies = {};
+	if(req.cookies!=null){
+		for(var x = 0;x<req.cookies.length;x++){
+			if(req.cookies[x].Name==name)
+				return req.cookies[x];
+		}
+	}
+	return undefined;
+}
+
+function getAuth(req){
+	var cache = require('cache');
+	var cookie = getCookie(req,'userid')
+	if (cookie == null)
+		return false;
+	var userId = cookie.Value;
+	var fromCache = cache.get('userid_'+userId);
+	if(fromCache == null)
+		return false;
+	var obj = JSON.parse(fromCache);
+	return obj;
+}
+
+function isAuth(req){
+	var auth = getAuth(req);
+	return auth!==null && auth.isAuth;
+}
+
+function login(resp,req){
+	var templating = require('templating');
+	templating.reloadTemplates();
+
+	if(req.method=='GET'){
+		var auth = getAuth(req);
+		if(auth != null && auth.isAuth){
+			message = 'hello ' + auth.username
+		} else{
+			message = 'please log in'
+		}
+
+		var templ = templating.runTemplate("login.thtml",
+			{ActionName:'login',Message:message});
+		resp.write(templ)
+	}
+	else{
+		var mongodb = require('mongodb')
+		var cache = require('cache')
+		var c = getCollection(mongodb);
+
+		var username = req.formValues.username[0];
+		var password = req.formValues.password[0];
+
+		c =c.Find({'Username':username})
+		var user = mongodb.one(c);
+		if(user !== false && user.Password==password){
+			var auth = getAuth(req);
+			if(auth!=null && auth.id!=null){
+				cache.remove('userid_'+auth.id)
+			}
+			var id = (Math.random()*100000000)|1;
+
+			cache.set('userid_'+id, JSON.stringify({
+				isAuth:true,
+				id:id,
+				date: new Date(),
+				isAdmin:user.isAdmin === true,
+				username:username})
+			);
+			resp.header = {'Set-Cookie':'userid='+id+';HttpOnly'};
+		}
+		else
+			resp.write('not ok');
+	}
 }
 
 function router(resp,req){

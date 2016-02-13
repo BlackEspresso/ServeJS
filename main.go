@@ -15,6 +15,7 @@ import (
 	"./plugins/httpmappings"
 	"./plugins/mail"
 	"./plugins/modules"
+	"./plugins/mongodb"
 	"./plugins/settings"
 	"./plugins/tasks"
 	"./plugins/templating"
@@ -52,6 +53,7 @@ func registerPlugins() {
 	modules.AddPlugin(htmlcheck.InitPlugin())
 	modules.AddPlugin(settings.InitPlugin())
 	modules.AddPlugin(goquery.InitPlugin())
+	modules.AddPlugin(mongodb.InitPlugin())
 }
 
 func newJSRuntime() (*otto.Otto, error) {

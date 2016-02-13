@@ -1,10 +1,9 @@
 <html>
-<form action="/login" method="post">
+<form action="/{{.ActionName}}" method="post">
 <input name="username" type="email" placeholder="mm@googlemail.com">
 <input name="password" type="password">
-<input type="submit">
+<input type="submit" value="{{.ActionName}}">
 </form>
-{{.}}
 <br>
-{{.Name}}
+{{.Message}}
 </html>
