@@ -10,7 +10,7 @@ import (
 
 func InitPlugin() *modules.Plugin {
 	p := modules.Plugin{
-		Name: "file",
+		Name: "http",
 		Init: registerVM,
 	}
 	return &p

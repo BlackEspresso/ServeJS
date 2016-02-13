@@ -21,6 +21,7 @@ function onRequest(resp,req){
 	resp.contentType='text/html'
 	//return JSON.stringify(req.cookies);
 	router(resp,req)
+		.on('/gquery',gquery)
 		.on('/hello',hello)
 		.on('/mailto', mailTo)
 		.on('/run', run)
@@ -35,6 +36,15 @@ function onRequest(resp,req){
 		.on('/cache',cacheFunc)
 		.on('/header',header)
 		.on('/htmlcheck',htmlCheck)
+}
+
+function gquery(resp,req){
+	var g = require('goquery')
+	var http = require('http')
+	var cResp = http.do({url:'http://google.com'});
+	var doc = g.newDocument(cResp.val.body)
+	var links = doc.ExtractAttributes("a");
+	resp.write(JSON.stringify(links))
 }
 
 function htmlCheck(resp,req){

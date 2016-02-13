@@ -8,6 +8,7 @@ import (
 	"./plugins/cmd"
 	"./plugins/dns"
 	"./plugins/file"
+	"./plugins/goquery"
 	"./plugins/htmlcheck"
 	phttp "./plugins/http"
 	"./plugins/httplistener"
@@ -50,6 +51,7 @@ func registerPlugins() {
 	modules.AddPlugin(cache.InitPlugin())
 	modules.AddPlugin(htmlcheck.InitPlugin())
 	modules.AddPlugin(settings.InitPlugin())
+	modules.AddPlugin(goquery.InitPlugin())
 }
 
 func newJSRuntime() (*otto.Otto, error) {
