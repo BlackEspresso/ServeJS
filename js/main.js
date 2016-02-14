@@ -41,6 +41,28 @@ function onRequest(resp,req){
 		.on('/siteinfo',siteInfo)
 		.on('/sitescan',siteScan)
 		.on('/time',time)
+		.on('/userfiles',userfiles)
+}
+
+function userfiles(resp,req){
+	var id = req.formValues.id;
+	if(id==null){
+		resp.statusCode = 404;
+		return;
+	}
+	var r = /\d+/;
+	if(!r.test(id)){
+		resp.statusCode = 404;
+		return;
+	}
+	var file = require('file');
+	var c = file.readFile('./userfiles/reports/'+id+'.txt');
+	if(c.error!==undefined){
+		resp.statusCode = 404;
+		return;
+	}
+
+	resp.write(c.val);
 }
 
 function time(resp,req){
@@ -78,12 +100,12 @@ function siteScan(resp,req){
         var mail= require('mail');
         var ret = fuzzUrls(url,count,start);
 
-        var timestamp = new Date().getTime();
+        var fileId = (Math.random()*100000)|1;
         var file = require('file');
-        var fileName = './static/reports/'+timestamp+'.txt';
+        var fileName = './userfiles/reports/'+fileId+'.txt';
         file.writeFile(fileName,ret);
-
-        var err = mail.send(email,'scanurl',fileName);
+        var fileUrl = 'http://' + req.host + '/userfiles?id='+fileId;
+        var err = mail.send(email,'scanurl',fileUrl);
         console.log(err.error)
 
     });

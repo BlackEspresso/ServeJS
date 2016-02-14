@@ -49,6 +49,7 @@ func RequestToJso(o *otto.Object, r *http.Request) {
 	o.Set("header", r.Header)
 	o.Set("cookies", r.Cookies())
 	o.Set("method", r.Method)
+	o.Set("host", r.Host)
 	r.ParseForm()
 	o.Set("formValues", r.Form)
 }

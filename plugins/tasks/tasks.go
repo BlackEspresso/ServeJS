@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"./../modules"
@@ -36,7 +36,6 @@ func InitPlugin() *modules.Plugin {
 				t.Name, _ = c.Argument(0).ToString()
 				startTimeStr := c.Argument(1).String()
 				startTime, _ := time.Parse(time.RFC1123, startTimeStr)
-				fmt.Println(startTimeStr, startTime)
 				t.Start = startTime
 				fs := c.Argument(2)
 				t.Func = func(tb *TaskBlock) {
@@ -44,6 +43,7 @@ func InitPlugin() *modules.Plugin {
 					tb.Done = true
 					if err != nil {
 						tb.ErrorText = err.Error()
+						log.Println(err)
 					}
 					tb.SuccessText, _ = val.ToString()
 					if tb.Repeat > 0 {
