@@ -56,7 +56,7 @@ function userfiles(resp,req){
 		return;
 	}
 	var file = require('file');
-	var c = file.readFile('./userfiles/reports/'+id+'.txt');
+	var c = file.read('./userfiles/reports/'+id+'.txt');
 	if(c.error!==undefined){
 		resp.statusCode = 404;
 		return;
@@ -103,7 +103,7 @@ function siteScan(resp,req){
         var fileId = (Math.random()*100000)|1;
         var file = require('file');
         var fileName = './userfiles/reports/'+fileId+'.txt';
-        file.writeFile(fileName,ret);
+        file.write(fileName,ret);
         var fileUrl = 'http://' + req.host + '/userfiles?id='+fileId;
         var nextRequestUrl = 'http://' + req.host + req.url;
         var err = mail.send(email,'scanurl',fileUrl + '\n\n' + nextRequestUrl);
@@ -119,7 +119,7 @@ function siteScan(resp,req){
 function fuzzUrls(url,count,start){
 	var http = require('http')
 	var file = require('file')
-	var wordlist = file.readFile('./static/wordlists/KitchensinkDirectories.fuzz.txt');
+	var wordlist = file.read('./static/wordlists/KitchensinkDirectories.fuzz.txt');
 	var words = wordlist.val.split('\n');
 
 	var ret = '';
@@ -258,7 +258,8 @@ function boerse(resp,req){
 }
 
 function scandns(resp,req){
-    var fileRead = readFile('static', 'subdomain_wordlist.txt');
+	var file = require('file')
+    var fileRead = file.read('static', 'subdomain_wordlist.txt');
     var lines = fileRead.Suc.split('\n');
 
     if (req.formValues.host === null) {
@@ -304,7 +305,7 @@ function editjs(resp,req){
 	}
 	var file = require('file')
 	templ.reloadTemplates();
-	var js = file.readFile('./js/main.js');
+	var js = file.read('./js/main.js');
 	var tmpl = templ.runTemplate("EditJs.thtml",{MainJs:js.val});
 	resp.write(tmpl)
 }
