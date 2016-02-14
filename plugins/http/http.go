@@ -50,6 +50,9 @@ func RequestToJso(o *otto.Object, r *http.Request) {
 	o.Set("cookies", r.Cookies())
 	o.Set("method", r.Method)
 	o.Set("host", r.Host)
+	o.Set("contentLength", r.ContentLength)
+	o.Set("proto", r.Proto)
+	o.Set("transferEncoding", r.TransferEncoding)
 	r.ParseForm()
 	o.Set("formValues", r.Form)
 }
@@ -58,6 +61,11 @@ func ResponseWriterToJso(o *otto.Object, w http.ResponseWriter) {
 	o.Set("write", func(c otto.FunctionCall) otto.Value {
 		text, _ := c.Argument(0).ToString()
 		w.Write([]byte(text))
+		return otto.TrueValue()
+	})
+	o.Set("writeHeader", func(c otto.FunctionCall) otto.Value {
+		statusCode, _ := c.Argument(0).ToInteger()
+		w.WriteHeader(int(statusCode))
 		return otto.TrueValue()
 	})
 }

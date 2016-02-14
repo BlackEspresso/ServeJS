@@ -4,3 +4,4 @@
 *.js~
 serverjs.yaml
 ./static/reports/*
+./userfiles/*

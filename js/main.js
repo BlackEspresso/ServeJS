@@ -105,7 +105,8 @@ function siteScan(resp,req){
         var fileName = './userfiles/reports/'+fileId+'.txt';
         file.writeFile(fileName,ret);
         var fileUrl = 'http://' + req.host + '/userfiles?id='+fileId;
-        var err = mail.send(email,'scanurl',fileUrl);
+        var nextRequestUrl = 'http://' + req.host + req.url;
+        var err = mail.send(email,'scanurl',fileUrl + '\n\n' + nextRequestUrl);
         console.log(err.error)
 
     });
