@@ -58,14 +58,13 @@ func InitPlugin() *modules.Plugin {
 }
 
 func writeFile(c otto.FunctionCall) otto.Value {
-	folder, _ := c.Argument(0).ToString()
-	file, _ := c.Argument(1).ToString()
-	data, _ := c.Argument(2).ToString()
-	//perm, _ := c.Argument(3).ToString()
-	err := ioutil.WriteFile("./"+folder+"/"+file, []byte(data), 777)
+	path, err := c.Argument(0).ToString()
 	if err != nil {
-		k, _ := otto.ToValue(err.Error())
-		return k
+		return modules.ToResult(c.Otto, nil, err)
 	}
-	return otto.UndefinedValue()
+
+	data, _ := c.Argument(1).ToString()
+	//perm, _ := c.Argument(3).ToString()
+	err = ioutil.WriteFile(path, []byte(data), 777)
+	return modules.ToResult(c.Otto, nil, err)
 }

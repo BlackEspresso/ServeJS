@@ -3,3 +3,4 @@
 *.txt~
 *.js~
 serverjs.yaml
+./static/reports/*

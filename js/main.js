@@ -65,18 +65,27 @@ function siteScan(resp,req){
 	var start = req.formValues.start;
 	if(start == null)
 		start = 0;
+	var email = req.formValues.email;
+	if(email == null){
+		resp.write('email is empty')
+		return
+	}
 
-	console.log(start)
 	var tasks= require('tasks');
 	//resp.write(cache.get('settings'));
 
 	tasks.addTask('test',0,function(){
         var mail= require('mail');
-        console.log(url)
         var ret = fuzzUrls(url,count,start);
 
-        mail.send('marinuspfund@googlemail.com',
-        	'scanurl',ret);
+        var timestamp = new Date().getTime();
+        var file = require('file');
+        var fileName = './static/reports/'+timestamp+'.txt';
+        file.writeFile(fileName,ret);
+
+        var err = mail.send(email,'scanurl',fileName);
+        console.log(err.error)
+
     });
 
 	resp.write('ok');
@@ -302,7 +311,7 @@ function run(resp,req){
 }
 
 function hello(resp,req){
-	resp.write('hello')
+	resp.write(JSON.stringify(req))
 }
 
 function schedule(resp,req){
