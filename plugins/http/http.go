@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 
@@ -27,7 +28,9 @@ func registerVM(vm *otto.Otto) otto.Value {
 		resp, err := client.Do(req)
 
 		respObj, _ := vm.Object("({})")
-		ResponseToJso(respObj, resp)
+		if err == nil {
+			ResponseToJso(respObj, resp)
+		}
 
 		return modules.ToResult(vm, respObj, err)
 	})
@@ -102,9 +105,19 @@ func setHeader(o *otto.Object, h *http.Header) {
 	}
 }
 
+type ClosingBuffer struct {
+	*bytes.Buffer
+}
+
+func (cb *ClosingBuffer) Close() error {
+	return nil
+}
+
 func JsoToRequest(o *otto.Object) *http.Request {
 	url, _ := o.Get("url")
 	method, err := o.Get("method")
+	body, _ := o.Get("body")
+
 	methodStr, err := method.ToString()
 	if method == otto.UndefinedValue() || err != nil {
 		methodStr = "GET"
@@ -112,6 +125,13 @@ func JsoToRequest(o *otto.Object) *http.Request {
 	urlStr, _ := url.ToString()
 
 	req, _ := http.NewRequest(methodStr, urlStr, nil)
+
+	if body != otto.UndefinedValue() {
+		str, err := body.ToString()
+		if err == nil {
+			req.Body = &ClosingBuffer{bytes.NewBufferString(str)}
+		}
+	}
 
 	setHeader(o, &req.Header)
 

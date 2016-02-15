@@ -42,6 +42,29 @@ function onRequest(resp,req){
 		.on('/sitescan',siteScan)
 		.on('/time',time)
 		.on('/userfiles',userfiles)
+		.on('/testHttp',testHttp)
+}
+
+function testHttp(resp,req){
+	var http = require('http');
+	var url = 'http://localhost:8081/hello'
+	var cResp = http.do({
+		method:'POST',
+		url:url,
+		header:{
+			'Test':'4'
+			'User-Agent':'QQ'
+			'Cookie':'test=4'
+			'Content-Type':'application/x-www-form-urlencoded'
+		},
+		body:'id=5&name=hello'
+	});
+
+	if(cResp.error)
+		resp.write(cResp.error)
+	else
+		resp.write(cResp.val.body)
+
 }
 
 function userfiles(resp,req){
@@ -71,6 +94,16 @@ function time(resp,req){
 	resp.write(4000);
 }
 
+
+function guid() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+}
 
 function siteScan(resp,req){
 	var urls = req.formValues.url;
