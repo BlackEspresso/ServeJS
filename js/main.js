@@ -9,7 +9,7 @@ function onStart(){
 	
 	var yaml = require('settings');
 	var conf = yaml.read('./serverjs.yaml');
-	c.set('settings', JSON.stringify(conf.val))
+	c.set('settings', JSON.stringify(conf.ok))
 
 	var server = require('httplistener')
 	server.requestFuncName = 'onRequest';
@@ -22,6 +22,7 @@ function onRequest(resp,req){
 	//return JSON.stringify(req.cookies);
 	router(resp,req)
 		.on('/gquery',gquery)
+		.on('/echo',echo)
 		.on('/hello',hello)
 		.on('/showcache',showcache)
 		.on('/mailto', mailTo)
@@ -47,7 +48,7 @@ function onRequest(resp,req){
 
 function testHttp(resp,req){
 	var http = require('http');
-	var url = 'http://localhost:8081/hello'
+	var url = 'http://localhost:8081/echo'
 	var cResp = http.do({
 		method:'POST',
 		url:url,
@@ -63,7 +64,7 @@ function testHttp(resp,req){
 	if(cResp.error)
 		resp.write(cResp.error)
 	else
-		resp.write(cResp.val.body)
+		resp.write(cResp.ok.body)
 
 }
 
@@ -85,24 +86,13 @@ function userfiles(resp,req){
 		return;
 	}
 
-	resp.write(c.val);
+	resp.write(c.ok);
 }
 
 function time(resp,req){
 	var time = require('time');
 	time.sleep(4000)
 	resp.write(4000);
-}
-
-
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-    s4() + '-' + s4() + s4() + s4();
 }
 
 function siteScan(resp,req){
@@ -153,7 +143,7 @@ function fuzzUrls(url,count,start){
 	var http = require('http')
 	var file = require('file')
 	var wordlist = file.read('./static/wordlists/KitchensinkDirectories.fuzz.txt');
-	var words = wordlist.val.split('\n');
+	var words = wordlist.ok.split('\n');
 
 	var ret = '';
 
@@ -164,7 +154,7 @@ function fuzzUrls(url,count,start){
 		var fullUrl = url + words[x].trim();
 		var cResp = http.do({url:fullUrl});
 		time.sleep(1000);
-		ret += cResp.val.statusCode + '  ' + fullUrl + '\n';
+		ret += cResp.ok.statusCode + '  ' + fullUrl + '\n';
 	}
 	var durationSec = (new Date().getTime()- startDate.getTime())/1000;
 	ret += durationSec + ' seconds\n'
@@ -177,7 +167,7 @@ function siteInfo(resp,req){
 	var http = require('http')
 	var cResp = http.do({url:url});
 	
-	var doc = goquery.newDocument(cResp.val.body)
+	var doc = goquery.newDocument(cResp.ok.body)
 	var form = doc.ExtractAttributes('form');
 	var hrefs = doc.ExtractAttributes('a');
 	var scripts = doc.ExtractAttributes('script');
@@ -186,13 +176,13 @@ function siteInfo(resp,req){
 	
 	var ret = {
 	    azs:zs,
-	    header:cResp.val.header,
+	    header:cResp.ok.header,
 	    hrefs:hrefs,
 	    forms:form,
 	    scripts:scripts,
 	    links:links,
-	    cookies:cResp.val.cookies,
-	    status:cResp.val.statusCode
+	    cookies:cResp.ok.cookies,
+	    status:cResp.ok.statusCode
 	}
 	resp.write(JSON.stringify(ret))
 }
@@ -236,7 +226,7 @@ function gquery(resp,req){
 	var goquery = require('goquery')
 	var http = require('http')
 	var cResp = http.do({url:'http://google.com'});
-	var doc = goquery.newDocument(cResp.val.body)
+	var doc = goquery.newDocument(cResp.ok.body)
 	var links = doc.ExtractAttributes('body');
 	resp.write(JSON.stringify(links))
 }
@@ -250,7 +240,7 @@ function htmlCheck(resp,req){
     var cResp = http.do({url:url});
     htmlcheck.loadTags('./static/tags.json')
     
-	var err = htmlcheck.validate(cResp.val.body)
+	var err = htmlcheck.okidate(cResp.ok.body)
 	resp.write(JSON.stringify(err))
 }
 
@@ -264,7 +254,7 @@ function header(resp,req){
 
 function cacheFunc(resp,req){
 	var key = req.formValues.key;
-	var val = req.formValues.value;
+	var val = req.formValues.okue;
 	if (val == null){
 		resp.write(cache.get(key))
 	}else{
@@ -283,7 +273,7 @@ function boerse(resp,req){
     var url = 'http://finance.yahoo.com/webservice/v1/symbols/'+symbol+'/quote?format=json';
     var siteResp = http.do({url:url});
     //resp.write(JSON.stringify(siteResp))
-    var serviceResp = JSON.parse(siteResp.val.body);
+    var serviceResp = JSON.parse(siteResp.ok.body);
     //resp.write(JSON.stringify(JSON.parse(siteResp.body),null,2))
     resp.write(serviceResp.list.resources[0].resource.fields.name);
     resp.write('\n')
@@ -339,7 +329,7 @@ function editjs(resp,req){
 	var file = require('file')
 	templ.reloadTemplates();
 	var js = file.read('./js/main.js');
-	var tmpl = templ.runTemplate("EditJs.thtml",{MainJs:js.val});
+	var tmpl = templ.runTemplate("EditJs.thtml",{MainJs:js.ok});
 	resp.write(tmpl)
 }
 
@@ -361,14 +351,20 @@ function mailTo(resp,req){
 function run(resp,req){
 	resp.contentType='text/plain'
 	var cmd = runCmd('echo','4','5')
-	if(cmd.val)
-		resp.write(cmd.val);
+	if(cmd.ok)
+		resp.write(cmd.ok);
 	else
 		resp.write(cmd.error);
 }
 
+function echo(resp,req){
+	resp.write(JSON.stringify(req));
+}
+
 function hello(resp,req){
-	resp.write(JSON.stringify(req))
+	var c = require('crypto');
+	resp.write('hello ' + c.newGuid());
+	//resp.write('hello')
 }
 
 function schedule(resp,req){
@@ -424,7 +420,7 @@ function getAuth(req){
 	var cookie = getCookie(req,'userid')
 	if (cookie == null)
 		return false;
-	var userId = cookie.Value;
+	var userId = cookie.okue;
 	var fromCache = cache.get('userid_'+userId);
 	if(fromCache == null)
 		return false;

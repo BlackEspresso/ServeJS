@@ -1,7 +1,9 @@
 package modules
 
 import (
+	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/robertkrimen/otto"
 )
@@ -21,12 +23,19 @@ type ModByName map[string]*Plugin
 
 var modules ModByName = ModByName{}
 
-func RegisterRequire(vm *otto.Otto) {
+func RegisterModules(vm *otto.Otto) {
 	vm.Set("require", func(c otto.FunctionCall) otto.Value {
 		name, _ := c.Argument(0).ToString()
 		module, ok := modules[name]
 		if !ok {
-			return otto.UndefinedValue()
+			if strings.Index(name, "./") == 0 {
+				c, err := ioutil.ReadFile(name)
+				if err == nil {
+					vm.Run(c)
+				}
+			} else {
+				return otto.UndefinedValue()
+			}
 		}
 		return module.Init(c.Otto)
 	})
@@ -49,7 +58,7 @@ func ToResult(vm *otto.Otto, valOk interface{}, err error) otto.Value {
 	if err != nil {
 		res.Set("error", err.Error())
 	} else {
-		res.Set("val", valOk)
+		res.Set("ok", valOk)
 	}
 	return res.Value()
 }
