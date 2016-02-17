@@ -1,7 +1,9 @@
 *.exe
 *.go~
+*.txt
 *.txt~
 *.js~
 serverjs.yaml
 ./static/reports/*
 ./userfiles/*
+*.bak
