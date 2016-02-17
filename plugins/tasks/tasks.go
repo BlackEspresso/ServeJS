@@ -53,6 +53,7 @@ func InitPlugin() *modules.Plugin {
 				tasks = append(tasks, &t)
 				return otto.TrueValue()
 			})
+
 			obj.Set("startTasks", func(c otto.FunctionCall) otto.Value {
 				Start()
 				return otto.TrueValue()

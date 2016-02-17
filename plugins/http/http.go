@@ -23,9 +23,20 @@ func registerVM(vm *otto.Otto) otto.Value {
 	obj.Set("do", func(c otto.FunctionCall) otto.Value {
 		arg1 := c.Argument(0)
 		req := JsoToRequest(arg1.Object())
+		followRedirObj, err := arg1.Object().Get("followRedirects")
+		followRedirects := true
+		if followRedirObj != otto.UndefinedValue() {
+			followRedirects, _ = followRedirObj.ToBoolean()
+		}
 
 		client := &http.Client{}
-		resp, err := client.Do(req)
+
+		var resp *http.Response
+		if followRedirects {
+			resp, err = client.Do(req)
+		} else {
+			resp, err = http.DefaultTransport.RoundTrip(req)
+		}
 
 		respObj, _ := vm.Object("({})")
 		if err == nil {
@@ -45,6 +56,22 @@ func ResponseToJso(o *otto.Object, w *http.Response) {
 	o.Set("proto", w.Proto)
 	c, _ := ioutil.ReadAll(w.Body)
 	o.Set("body", string(c))
+	if w.TLS != nil {
+		o.Set("tlsServerName", w.TLS.ServerName)
+		o.Set("tlsNegotiatedProtocol", w.TLS.NegotiatedProtocol)
+		names := []string{}
+		ips := []string{}
+		for _, k := range w.TLS.PeerCertificates {
+			for _, n := range k.DNSNames {
+				names = append(names, n)
+			}
+			for _, n := range k.IPAddresses {
+				ips = append(ips, n.String())
+			}
+		}
+		o.Set("tlsDNSNames", names)
+		o.Set("tlsIPs", ips)
+	}
 }
 
 func RequestToJso(o *otto.Object, r *http.Request) {

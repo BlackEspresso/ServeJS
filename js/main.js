@@ -165,8 +165,11 @@ function siteInfo(resp,req){
     var url = req.formValues.url[0];
     var goquery = require('goquery')
 	var http = require('http')
-	var cResp = http.do({url:url});
-	
+	var cResp = http.do({url:url,followRedirects:false});
+	if (cResp.error!=null){
+		resp.write(cResp.error)
+		return
+	}
 	var doc = goquery.newDocument(cResp.ok.body)
 	var form = doc.ExtractAttributes('form');
 	var hrefs = doc.ExtractAttributes('a');
@@ -183,6 +186,8 @@ function siteInfo(resp,req){
 	    links:links,
 	    cookies:cResp.ok.cookies,
 	    status:cResp.ok.statusCode
+	    tls: cResp.ok.tlsDNSNames
+	    
 	}
 	resp.write(JSON.stringify(ret))
 }
