@@ -5,6 +5,7 @@ function onStart(){
 	
 	m.addMapping('/websocket','websocket');
 	m.addMapping('/writefile','writefile');
+	m.addMapping('/static','servefile');
 	t.startTasks();
 	
 	var yaml = require('settings');
@@ -53,9 +54,9 @@ function testHttp(resp,req){
 		method:'POST',
 		url:url,
 		header:{
-			'Test':'4'
-			'User-Agent':'QQ'
-			'Cookie':'test=4'
+			'Test':'4',
+			'User-Agent':'QQ',
+			'Cookie':'test=4',
 			'Content-Type':'application/x-www-form-urlencoded'
 		},
 		body:'id=5&name=hello'
@@ -112,12 +113,11 @@ function siteScan(resp,req){
 		start = 0;
 	var email = req.formValues.email;
 	if(email == null){
-		resp.write('email is empty')
-		return
+		resp.write('email is empty');
+		return;
 	}
 
 	var tasks= require('tasks');
-	//resp.write(cache.get('settings'));
 
 	tasks.addTask('test',0,function(){
         var mail= require('mail');
@@ -130,18 +130,16 @@ function siteScan(resp,req){
         var fileUrl = 'http://' + req.host + '/userfiles?id='+fileId;
         var nextRequestUrl = 'http://' + req.host + req.url;
         var err = mail.send(email,'scanurl',fileUrl + '\n\n' + nextRequestUrl);
-        console.log(err.error)
+        console.log(err.error);
 
     });
 
 	resp.write('ok');
-	//resp.write(words.length);
-	//resp.write(url)
 }
 
 function fuzzUrls(url,count,start){
-	var http = require('http')
-	var file = require('file')
+	var http = require('http');
+	var file = require('file');
 	var wordlist = file.read('./static/wordlists/KitchensinkDirectories.fuzz.txt');
 	var words = wordlist.ok.split('\n');
 
@@ -171,14 +169,19 @@ function siteInfo(resp,req){
 		return
 	}
 	var doc = goquery.newDocument(cResp.ok.body)
-	var form = doc.ExtractAttributes('form');
+	var form = doc.ExtractForms();
 	var hrefs = doc.ExtractAttributes('a');
 	var scripts = doc.ExtractAttributes('script');
 	var links = doc.ExtractAttributes('link');
 	var zs = doc.ExtractAttributes('z');
 	
+	var htmlcheck = require('htmlcheck')
+	htmlcheck.loadTags('./static/tags.json')
+	var err = htmlcheck.validate(cResp.ok.body)
+
 	var ret = {
 	    azs:zs,
+	    invalidTags:err
 	    header:cResp.ok.header,
 	    hrefs:hrefs,
 	    forms:form,
@@ -245,7 +248,7 @@ function htmlCheck(resp,req){
     var cResp = http.do({url:url});
     htmlcheck.loadTags('./static/tags.json')
     
-	var err = htmlcheck.okidate(cResp.ok.body)
+	var err = htmlcheck.validate(cResp.ok.body)
 	resp.write(JSON.stringify(err))
 }
 
@@ -408,7 +411,6 @@ function register(resp,req){
 	}
 }
 
-
 function getCookie(req,name){
 	var cookies = {};
 	if(req.cookies!=null){
@@ -424,11 +426,11 @@ function getAuth(req){
 	var cache = require('cache');
 	var cookie = getCookie(req,'userid')
 	if (cookie == null)
-		return false;
-	var userId = cookie.okue;
+		return null;
+	var userId = cookie.Value;
 	var fromCache = cache.get('userid_'+userId);
 	if(fromCache == null)
-		return false;
+		return null;
 	var obj = JSON.parse(fromCache);
 	return obj;
 }
@@ -479,6 +481,7 @@ function login(resp,req){
 				username:username})
 			);
 			resp.header = {'Set-Cookie':'userid='+id+';HttpOnly'};
+
 		}
 		else
 			resp.write('not ok');

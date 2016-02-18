@@ -1,30 +1,284 @@
-function onServerStart(){
-	addMapping('/websocket','websocket')
-	addMapping('/writefile','writefile')
-	console.log('started')
+function onStart(){
+	var m = require('httpmappings')
+	var t = require('tasks')
+	var c = require('cache')
+	
+	m.addMapping('/websocket','websocket');
+	m.addMapping('/writefile','writefile');
+	t.startTasks();
+	
+	var yaml = require('settings');
+	var conf = yaml.read('./serverjs.yaml');
+	c.set('settings', JSON.stringify(conf.ok))
+
+	var server = require('httplistener')
+	server.requestFuncName = 'onRequest';
+	//server.addr = ':8080'
+	server.startAndWait()
 }
 
 function onRequest(resp,req){
 	resp.contentType='text/html'
 	//return JSON.stringify(req.cookies);
 	router(resp,req)
+		.on('/gquery',gquery)
+		.on('/echo',echo)
 		.on('/hello',hello)
+		.on('/showcache',showcache)
 		.on('/mailto', mailTo)
 		.on('/run', run)
 		.on('/login',login)
-		.on('/admin',admin)
+		.on('/register',register)
 		.on('/req',request)
 		.on('/editjs',editjs)
 		.on('/boerse',boerse)
 		.on('/scandns',scandns)
 		.on('/schedule',schedule)
+		.on('/datetime',datetime)
+		.on('/cache',cacheFunc)
+		.on('/header',header)
+		.on('/htmlcheck',htmlCheck)
+		.on('/mongo',mongo)
+		.on('/siteinfo',siteInfo)
+		.on('/sitescan',siteScan)
+		.on('/time',time)
+		.on('/userfiles',userfiles)
+		.on('/testHttp',testHttp)
+}
+
+function testHttp(resp,req){
+	var http = require('http');
+	var url = 'http://localhost:8081/echo'
+	var cResp = http.do({
+		method:'POST',
+		url:url,
+		header:{
+			'Test':'4',
+			'User-Agent':'QQ',
+			'Cookie':'test=4',
+			'Content-Type':'application/x-www-form-urlencoded'
+		},
+		body:'id=5&name=hello'
+	});
+
+	if(cResp.error)
+		resp.write(cResp.error)
+	else
+		resp.write(cResp.ok.body)
+
+}
+
+function userfiles(resp,req){
+	var id = req.formValues.id;
+	if(id==null){
+		resp.statusCode = 404;
+		return;
+	}
+	var r = /\d+/;
+	if(!r.test(id)){
+		resp.statusCode = 404;
+		return;
+	}
+	var file = require('file');
+	var c = file.read('./userfiles/reports/'+id+'.txt');
+	if(c.error!==undefined){
+		resp.statusCode = 404;
+		return;
+	}
+
+	resp.write(c.ok);
+}
+
+function time(resp,req){
+	var time = require('time');
+	time.sleep(4000)
+	resp.write(4000);
+}
+
+function siteScan(resp,req){
+	var urls = req.formValues.url;
+	if(urls==null||urls.length==0){
+		resp.write('url not found')
+	}
+	var url = urls[0];
+	if(url[url.length-1]=="/"){
+		url = url.substr(0,url.length-1);
+	}
+	var count = req.formValues.count;
+	if(count == null)
+		count = 10;
+	var start = req.formValues.start;
+	if(start == null)
+		start = 0;
+	var email = req.formValues.email;
+	if(email == null){
+		resp.write('email is empty')
+		return
+	}
+
+	var tasks= require('tasks');
+	//resp.write(cache.get('settings'));
+
+	tasks.addTask('test',0,function(){
+        var mail= require('mail');
+        var ret = fuzzUrls(url,count,start);
+
+        var fileId = (Math.random()*100000)|1;
+        var file = require('file');
+        var fileName = './userfiles/reports/'+fileId+'.txt';
+        file.write(fileName,ret);
+        var fileUrl = 'http://' + req.host + '/userfiles?id='+fileId;
+        var nextRequestUrl = 'http://' + req.host + req.url;
+        var err = mail.send(email,'scanurl',fileUrl + '\n\n' + nextRequestUrl);
+        console.log(err.error);
+
+    });
+
+	resp.write('ok');
+	//resp.write(words.length);
+	//resp.write(url)
+}
+
+function fuzzUrls(url,count,start){
+	var http = require('http');
+	var file = require('file');
+	var wordlist = file.read('./static/wordlists/KitchensinkDirectories.fuzz.txt');
+	var words = wordlist.ok.split('\n');
+
+	var ret = '';
+
+	var startDate = new Date();
+	var time = require('time');
+
+	for(var x = start;x<words.length&&x-start<count;x++){
+		var fullUrl = url + words[x].trim();
+		var cResp = http.do({url:fullUrl});
+		time.sleep(1000);
+		ret += cResp.ok.statusCode + '  ' + fullUrl + '\n';
+	}
+	var durationSec = (new Date().getTime()- startDate.getTime())/1000;
+	ret += durationSec + ' seconds\n'
+	return ret;
+}
+
+function siteInfo(resp,req){
+    var url = req.formValues.url[0];
+    var goquery = require('goquery')
+	var http = require('http')
+	var cResp = http.do({url:url,followRedirects:false});
+	if (cResp.error!=null){
+		resp.write(cResp.error)
+		return
+	}
+	var doc = goquery.newDocument(cResp.ok.body)
+	var form = doc.ExtractAttributes('form');
+	var hrefs = doc.ExtractAttributes('a');
+	var scripts = doc.ExtractAttributes('script');
+	var links = doc.ExtractAttributes('link');
+	var zs = doc.ExtractAttributes('z');
+	
+	var ret = {
+	    azs:zs,
+	    header:cResp.ok.header,
+	    hrefs:hrefs,
+	    forms:form,
+	    scripts:scripts,
+	    links:links,
+	    cookies:cResp.ok.cookies,
+	    status:cResp.ok.statusCode
+	    tls: cResp.ok.tlsDNSNames
+	    
+	}
+	resp.write(JSON.stringify(ret))
+}
+
+function showcache(resp,req){
+	var cache = require('cache');
+	if(!isAuth(req)){
+		redirect(resp,'/login')
+		return
+	}
+	resp.write(JSON.stringify(cache.all()))
+}
+
+function redirect(resp,url){
+	resp.statusCode=302;
+	resp.header = {
+		'Location':url
+	}
+}
+
+function mongo(resp,req){
+	var m = require('mongodb')
+	var sess = m.newSession('localhost')
+	var c= sess.DB('jstest').C('test')
+
+	c.RemoveAll({})
+
+	c.Insert({'Name':'Tester1','Street':'here'})
+
+	c = c.Find({'Name':'Tester1'})
+	for(var x in c){
+		resp.write(x + '\n');
+	}
+
+	var test = m.all(c.Select({'Name':1}));
+
+	resp.write(JSON.stringify(test));
+}
+
+function gquery(resp,req){
+	var goquery = require('goquery')
+	var http = require('http')
+	var cResp = http.do({url:'http://google.com'});
+	var doc = goquery.newDocument(cResp.ok.body)
+	var links = doc.ExtractAttributes('body');
+	resp.write(JSON.stringify(links))
+}
+
+function htmlCheck(resp,req){
+    var url = req.formValues.url;
+    if(url==null){
+        resp.write('url is empty')
+        return
+    }
+    var cResp = http.do({url:url});
+    htmlcheck.loadTags('./static/tags.json')
+    
+	var err = htmlcheck.okidate(cResp.ok.body)
+	resp.write(JSON.stringify(err))
+}
+
+function header(resp,req){
+	resp.header = {
+		'Set-Cookie':'c=5',
+		'Test-Header':'4'
+	}
+	resp.write('4')
+}
+
+function cacheFunc(resp,req){
+	var key = req.formValues.key;
+	var val = req.formValues.okue;
+	if (val == null){
+		resp.write(cache.get(key))
+	}else{
+		cache.set(key,val);
+		resp.write('ok')
+	}
+	cache.save('./static/cache.json')
+} 
+
+function datetime(resp,req){
+	resp.write(new Date().toString())
 }
 
 function boerse(resp,req){
     var symbol = req.formValues.symbol;
     var url = 'http://finance.yahoo.com/webservice/v1/symbols/'+symbol+'/quote?format=json';
-    var siteResp = httpDo({url:url,method:'GET'});
-    var serviceResp = JSON.parse(siteResp.body);
+    var siteResp = http.do({url:url});
+    //resp.write(JSON.stringify(siteResp))
+    var serviceResp = JSON.parse(siteResp.ok.body);
     //resp.write(JSON.stringify(JSON.parse(siteResp.body),null,2))
     resp.write(serviceResp.list.resources[0].resource.fields.name);
     resp.write('\n')
@@ -32,7 +286,8 @@ function boerse(resp,req){
 }
 
 function scandns(resp,req){
-    var fileRead = readFile('static', 'subdomain_wordlist.txt');
+	var file = require('file')
+    var fileRead = file.read('static', 'subdomain_wordlist.txt');
     var lines = fileRead.Suc.split('\n');
 
     if (req.formValues.host === null) {
@@ -71,9 +326,15 @@ function scandns(resp,req){
 }
 
 function editjs(resp,req){
-	reloadTemplates();
-	var js = readFile('js','main.js');
-	var tmpl = runTemplate("EditJs.thtml",{MainJs:js.Suc});
+	var templ = require('templating');
+	if(!isAuth(req)){
+		redirect(resp,'/login');
+		return;
+	}
+	var file = require('file')
+	templ.reloadTemplates();
+	var js = file.read('./js/main.js');
+	var tmpl = templ.runTemplate("EditJs.thtml",{MainJs:js.ok});
 	resp.write(tmpl)
 }
 
@@ -95,39 +356,133 @@ function mailTo(resp,req){
 function run(resp,req){
 	resp.contentType='text/plain'
 	var cmd = runCmd('echo','4','5')
-	if(cmd.Suc)
-		resp.write(cmd.Suc);
+	if(cmd.ok)
+		resp.write(cmd.ok);
 	else
-		resp.write(cmd.Err);
+		resp.write(cmd.error);
+}
+
+function echo(resp,req){
+	resp.write(JSON.stringify(req));
 }
 
 function hello(resp,req){
-	resp.write('hello')
+	var c = require('crypto');
+	resp.write('hello ' + c.newGuid());
+	//resp.write('hello')
 }
 
 function schedule(resp,req){
-    addTask('test',0,function(){
-        var cmd = runCmd('cmd','/c','dir');
-        console.log(cmd.Suc,cmd.Err)
+	var d = new Date();
+	d.setMinutes(d.getMinutes()+1);
+
+    addTask('test',d,function(){
+        //var cmd = runCmd('cmd','/c','dir');
+        console.log('task started: ' + new Date())
     });
-	startTasks()
+	
 	resp.write('scheduled')
 }
 
-function login(resp,req){
-	loadMailSettings();
+function getCollection(mongodb){
+	var sess = mongodb.newSession('localhost')
+	var c = sess.DB('jstest').C('test')
+	return c;
+}
+
+function register(resp,req){
+	var mongodb = require('mongodb')
+	var c = getCollection(mongodb);
+
+	var templating = require('templating');
+	templating.reloadTemplates();
+
 	if(req.method=='GET'){
-		resp.write(runTemplate("login.thtml",{Name:"v"}))
-		//resp.write(JSON.stringify(readDir('static')))
-		//writeFile('static','test.html','<html>')
+		var templ = templating.runTemplate("login.thtml",{ActionName:'register'});
+		resp.write(templ)
 	}
-	else{
-		resp.write('logged in. no. kidding. password wrong')
+	if(req.method=='POST'){
+		var username = req.formValues.username[0];
+		var password = req.formValues.password[0];
+		c.Insert({'Username':username,'Password':password});
 	}
 }
 
-function admin(resp){
-	resp.write("todo")
+function getCookie(req,name){
+	var cookies = {};
+	if(req.cookies!=null){
+		for(var x = 0;x<req.cookies.length;x++){
+			if(req.cookies[x].Name==name)
+				return req.cookies[x];
+		}
+	}
+	return undefined;
+}
+
+function getAuth(req){
+	var cache = require('cache');
+	var cookie = getCookie(req,'userid')
+	if (cookie == null)
+		return null;
+	var userId = cookie.Value;
+	var fromCache = cache.get('userid_'+userId);
+	if(fromCache == null)
+		return null;
+	var obj = JSON.parse(fromCache);
+	return obj;
+}
+
+function isAuth(req){
+	var auth = getAuth(req);
+	return auth!==null && auth.isAuth;
+}
+
+function login(resp,req){
+	var templating = require('templating');
+	templating.reloadTemplates();
+
+	if(req.method=='GET'){
+		var auth = getAuth(req);
+		if(auth != null && auth.isAuth){
+			message = 'hello ' + auth.username
+		} else{
+			message = 'please log in'
+		}
+
+		var templ = templating.runTemplate("login.thtml",
+			{ActionName:'login',Message:message});
+		resp.write(templ)
+	}
+	else{
+		var mongodb = require('mongodb')
+		var cache = require('cache')
+		var c = getCollection(mongodb);
+
+		var username = req.formValues.username[0];
+		var password = req.formValues.password[0];
+
+		c =c.Find({'Username':username})
+		var user = mongodb.one(c);
+		if(user !== false && user.Password==password){
+			var auth = getAuth(req);
+			if(auth!=null && auth.id!=null){
+				cache.remove('userid_'+auth.id)
+			}
+			var id = (Math.random()*100000000)|1;
+
+			cache.set('userid_'+id, JSON.stringify({
+				isAuth:true,
+				id:id,
+				date: new Date(),
+				isAdmin:user.isAdmin === true,
+				username:username})
+			);
+			resp.header = {'Set-Cookie':'userid='+id+';HttpOnly'};
+
+		}
+		else
+			resp.write('not ok');
+	}
 }
 
 function router(resp,req){

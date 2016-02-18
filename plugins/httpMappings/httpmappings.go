@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"./../modules"
 	"github.com/robertkrimen/otto"
@@ -60,6 +61,10 @@ func AddMapping(url string, name string) {
 
 func RunMappings(w http.ResponseWriter, r *http.Request, plugins []*modules.Plugin) bool {
 	url := r.URL.Path
+	segments := strings.Split(url, "/")
+	if len(segments) > 0 {
+		url = "/" + segments[1]
+	}
 	funcName, ok := urlMapping[url]
 	if ok {
 		for _, p := range plugins {

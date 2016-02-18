@@ -3,6 +3,8 @@ package goquery
 import (
 	"bytes"
 
+	"golang.org/x/net/html"
+
 	"./../modules"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/robertkrimen/otto"
@@ -33,14 +35,45 @@ func (g *GoQueryDoc) ExtractLinks() []string {
 	return links
 }
 
+func (g *GoQueryDoc) ExtractForms() []map[string]interface{} {
+	list := []map[string]interface{}{}
+	g.doc.Find("form").Each(func(i int, s *goquery.Selection) {
+		node := s.Get(0)
+		attrs := getAttrs(node)
+		cAttrs := upCastList(attrs)
+		list = append(list, cAttrs)
+		inputList := []map[string]interface{}{}
+		s.Find("input").Each(func(i int, s *goquery.Selection) {
+			inputNode := s.Get(0)
+			attrsInput := getAttrs(inputNode)
+			inputList = append(inputList, upCastList(attrsInput))
+		})
+		cAttrs["inputFields"] = inputList
+	})
+	return list
+}
+
+func upCastList(list map[string]string) map[string]interface{} {
+	castAttrs := map[string]interface{}{}
+	for k, v := range list {
+		castAttrs[k] = v
+	}
+	return castAttrs
+}
+
+func getAttrs(node *html.Node) map[string]string {
+	attrs := map[string]string{}
+	for _, attr := range node.Attr {
+		attrs[attr.Key] = attr.Val
+	}
+	return attrs
+}
+
 func (g *GoQueryDoc) ExtractAttributes(tagName string) []map[string]string {
 	list := []map[string]string{}
 	g.doc.Find(tagName).Each(func(i int, s *goquery.Selection) {
-		n := s.Get(0)
-		attrs := map[string]string{}
-		for _, attr := range n.Attr {
-			attrs[attr.Key] = attr.Val
-		}
+		node := s.Get(0)
+		attrs := getAttrs(node)
 		list = append(list, attrs)
 	})
 	return list

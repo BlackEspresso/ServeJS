@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"./../modules"
@@ -13,6 +14,12 @@ func InitPlugin() *modules.Plugin {
 	p := modules.Plugin{
 		Name: "http",
 		Init: registerVM,
+		HttpMapping: modules.FuncMapping{
+			"servefile": func(w http.ResponseWriter, r *http.Request) {
+				log.Println(r.URL.Path)
+				http.ServeFile(w, r, r.URL.Path[1:])
+			},
+		},
 	}
 	return &p
 }
