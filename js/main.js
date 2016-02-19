@@ -341,7 +341,7 @@ function editjs(resp,req){
 	resp.write(tmpl)
 }
 
-function onWebSocketRequest(message){
+function onWebSocketMessage(message){
 	console.log('js: '+message)
 }
 

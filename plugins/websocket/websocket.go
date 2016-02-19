@@ -45,7 +45,9 @@ func doWebSocket(w http.ResponseWriter, r *http.Request,
 			log.Println("read:", err)
 			break
 		}
-		_, err = vm.Call("onWebSocketRequest", nil, string(message))
+
+		//fmt.Println("calling onWebSocketMessage" + string(message))
+		_, err = vm.Call("onWebSocketMessage", nil, string(message))
 		if err != nil {
 			log.Println("jserror", err)
 		}
