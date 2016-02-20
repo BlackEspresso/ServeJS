@@ -6,7 +6,23 @@
   },
   {
     "Name": "",
-    "Attrs": [ "id", "class", "lang", "role", "style", "aria-grabbed" ],
+    "Attrs": [
+      "id",
+      "class",
+      "lang",
+      "role",
+      "style",
+      "aria-grabbed",
+      "aria-label",
+      "aria-hidden",
+      "aria-expanded",
+      "aria-dropeffect",
+      "aria-controls",
+      "tabindex",
+      "onmousedown",
+      "onmouseup",
+      "onload"
+    ],
     "AttrRegEx": "^data-"
   },
   {
@@ -180,7 +196,7 @@
   },
   {
     "Name": "button",
-    "Attrs": [ "type", "tabindex", "value", "title", "onclick" ],
+    "Attrs": [ "type", "tabindex", "value", "title", "onclick", "name", "href" ],
     "IsSelfClosing": false
   },
   {
