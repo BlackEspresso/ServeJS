@@ -45,6 +45,13 @@ function onRequest(resp,req){
 		.on('/time',time)
 		.on('/userfiles',userfiles)
 		.on('/testHttp',testHttp)
+		.on('/filewatch',filewatch)
+}
+
+function filewatch(resp,req){
+	var fw = require('filewatch')
+	fw.watchDir('./static/')
+	fw.start()
 }
 
 function testHttp(resp,req){

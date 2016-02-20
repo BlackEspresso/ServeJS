@@ -11,6 +11,7 @@ import (
 	"./plugins/crypto"
 	"./plugins/dns"
 	"./plugins/file"
+	"./plugins/filewatch"
 	"./plugins/goquery"
 	"./plugins/htmlcheck"
 	phttp "./plugins/http"
@@ -60,6 +61,7 @@ func registerPlugins() {
 	modules.AddPlugin(mongodb.InitPlugin())
 	modules.AddPlugin(time.InitPlugin())
 	modules.AddPlugin(crypto.InitPlugin())
+	modules.AddPlugin(filewatch.InitPlugin())
 }
 
 var lastMd5 [16]byte = [16]byte{}
