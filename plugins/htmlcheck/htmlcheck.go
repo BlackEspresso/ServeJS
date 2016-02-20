@@ -29,9 +29,8 @@ func registerVM(vm *otto.Otto) otto.Value {
 		tags, err := LoadTagsFromFile(path)
 		if err == nil {
 			validater.AddValidTags(tags)
-			return otto.TrueValue()
 		}
-		return otto.FalseValue()
+		return modules.ToResult(vm, true, err)
 	})
 	obj.Set("validate", func(c otto.FunctionCall) otto.Value {
 		htmltext, _ := c.Argument(0).ToString()
@@ -42,16 +41,16 @@ func registerVM(vm *otto.Otto) otto.Value {
 	return obj.Value()
 }
 
-func LoadTagsFromFile(path string) ([]htmlcheck.ValidTag, error) {
+func LoadTagsFromFile(path string) ([]*htmlcheck.ValidTag, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return []htmlcheck.ValidTag{}, err
+		return []*htmlcheck.ValidTag{}, err
 	}
 
-	var validTags []htmlcheck.ValidTag
+	var validTags []*htmlcheck.ValidTag
 	err = json.Unmarshal(content, &validTags)
 	if err != nil {
-		return []htmlcheck.ValidTag{}, err
+		return []*htmlcheck.ValidTag{}, err
 	}
 
 	return validTags, nil

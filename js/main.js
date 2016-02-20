@@ -163,7 +163,13 @@ function siteInfo(resp,req){
     var url = req.formValues.url[0];
     var goquery = require('goquery')
 	var http = require('http')
-	var cResp = http.do({url:url,followRedirects:false});
+	var cResp = http.do({
+		url:url,
+		followRedirects:false,
+		header:{
+			'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'
+		}
+	});
 	if (cResp.error!=null){
 		resp.write(cResp.error)
 		return
@@ -176,7 +182,8 @@ function siteInfo(resp,req){
 	var zs = doc.ExtractAttributes('z');
 	
 	var htmlcheck = require('htmlcheck')
-	htmlcheck.loadTags('./static/tags.json')
+	k  = htmlcheck.loadTags('./static/tags.json')
+	console.log(k.error)
 	var err = htmlcheck.validate(cResp.ok.body)
 
 	var ret = {
