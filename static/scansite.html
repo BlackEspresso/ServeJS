@@ -1,4 +1,32 @@
 <html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div class="container" style="margin-top:40px">
+        <h4>Scan Site</h4>
+        <form id="formScanUrl">
 
-	test2
+            <label for="inputUrl">URL</label>
+            <input class="u-full-width" type="text" placeholder="http://google.com" id="inputUrl">
+            <input class="button-primary" type="submit" value="Submit">
+
+        </form>
+    </div>
+    <script src="js/jquery-2.2.0.min.js"></script>
+    <script>
+        var form = $('#formScanUrl');
+        form.on('submit', function (event) {
+            event.preventDefault();
+            var url = form.find('#inputUrl');
+            $.getJSON('/siteinfo?url=' + url.val())
+                .done((ret) => {
+                    console.log(ret)
+                })
+        });
+    </script>
+</body>
 </html>
