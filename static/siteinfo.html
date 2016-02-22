@@ -4,8 +4,10 @@
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/skeleton.css">
     <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
 </head>
 <body>
+  <div id="react"></div>
     <div class="container" style="margin-top:40px">
         <h4>Scan Site</h4>
         <form id="formScanUrl">
@@ -17,6 +19,7 @@
         </form>
     </div>
     <script src="js/jquery-2.2.0.min.js"></script>
+    <script src="js/riot+compiler.min.js"></script>
     <script>
         var form = $('#formScanUrl');
         form.on('submit', function (event) {
@@ -28,5 +31,12 @@
                 })
         });
     </script>
+    <script type="riot/tag" src="jsonTable.tag"></script>
+
+    <script> riot.mount('jsonTable', { data:{
+      names:[{id:1,name:"K"},{id:2,name:"T"}]
+
+    } }) </script>
+
 </body>
 </html>
