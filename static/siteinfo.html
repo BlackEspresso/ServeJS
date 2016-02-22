@@ -33,8 +33,17 @@
     </script>
     <script type="riot/tag" src="jsonTable.tag"></script>
 
-    <script> riot.mount('jsonTable', { data:{
-      names:[{id:1,name:"K"},{id:2,name:"T"}]
+    <div class="container">
+        <jObject></jObject>
+    </div>
+
+    <script> riot.mount('jObject', { data:{
+      names:"test",
+      array:["a","b"],
+      obj:{
+        "t":1,
+        "m":2
+      }
 
     } }) </script>
 
