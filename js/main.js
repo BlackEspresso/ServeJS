@@ -46,6 +46,12 @@ function onRequest(resp,req){
 		.on('/userfiles',userfiles)
 		.on('/testHttp',testHttp)
 		.on('/filewatch',filewatch)
+		.on('/sendwebsocket',sendwebsocket)
+}
+
+function sendwebsocket(resp,req){
+	var events = require('events');
+	events.push('channel1','hello from http')
 }
 
 function filewatch(resp,req){
@@ -355,8 +361,17 @@ function editjs(resp,req){
 	resp.write(tmpl)
 }
 
-function onWebSocketMessage(message){
-	console.log('js: '+message)
+function onWebSocket(websocket){
+	var e = require('events');
+	var myChannel = 'webrandom1';
+	e.create(myChannel)
+	e.route('channel1',myChannel)
+	while(true){
+		var message = e.next(myChannel);
+		websocket.write(1,message)
+		e.sleep(1000)
+		break
+	}
 }
 
 function request(resp,req){

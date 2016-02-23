@@ -50,8 +50,10 @@ func NewJSRuntime() (*otto.Otto, error) {
 	*/
 	_, err = vm.Run(string(fileC))
 
-	usedRuntimes += 1
-	runtime.SetFinalizer(vm, finalizer)
+	if err == nil {
+		usedRuntimes += 1
+		runtime.SetFinalizer(vm, finalizer)
+	}
 	return vm, err
 }
 

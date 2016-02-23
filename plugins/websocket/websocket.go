@@ -15,7 +15,9 @@ var upgrader = websocket.Upgrader{}
 func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
 	p := modules.Plugin{
 		Name: "websocket",
-		Init: func(vm *otto.Otto) otto.Value { return otto.UndefinedValue() },
+		Init: func(vm *otto.Otto) otto.Value {
+			return otto.UndefinedValue()
+		},
 		HttpMapping: modules.FuncMapping{
 			"websocket": func(w http.ResponseWriter, r *http.Request) {
 				doWebSocket(w, r, createVM)
@@ -29,35 +31,35 @@ func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
 func doWebSocket(w http.ResponseWriter, r *http.Request,
 	createVM func() (*otto.Otto, error)) {
 
-	c, err := upgrader.Upgrade(w, r, nil)
+	connection, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
+	defer connection.Close()
 	vm, err := createVM()
 
 	fmt.Println("websocket start")
 
-	for {
-		mt, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
+	obj, _ := vm.Object("({})")
+	obj.Set("read", func(c otto.FunctionCall) otto.Value {
+		_, message, _ := connection.ReadMessage()
+		val, _ := otto.ToValue(message)
+		return val
+	})
+	obj.Set("write", func(c otto.FunctionCall) otto.Value {
+		mType, _ := c.Argument(0).ToInteger()
+		message, _ := c.Argument(1).ToString()
 
-		//fmt.Println("calling onWebSocketMessage" + string(message))
-		_, err = vm.Call("onWebSocketMessage", nil, string(message))
-		if err != nil {
-			log.Println("jserror", err)
-		}
+		err := connection.WriteMessage(int(mType), []byte(message))
+		val, _ := otto.ToValue(err)
+		return val
+	})
 
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}
+	_, err = vm.Call("onWebSocket", nil, obj.Value())
+	if err != nil {
+		log.Println("jserror", err)
 	}
+
 	fmt.Println("websocket end")
 }
