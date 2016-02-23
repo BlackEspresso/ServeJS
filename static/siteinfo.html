@@ -4,7 +4,11 @@
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/skeleton.css">
     <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-
+    <style>
+      table{
+        width: 100%;
+      }
+    </style>
 </head>
 <body>
   <div id="react"></div>
@@ -27,25 +31,27 @@
             var url = form.find('#inputUrl');
             $.getJSON('/siteinfo?url=' + url.val())
                 .done((ret) => {
-                    console.log(ret)
+                    riot.mount('siteinfo', { siteinfo:ret })
                 })
         });
     </script>
-    <script type="riot/tag" src="jsonTable.tag"></script>
+    <script type="riot/tag" src="siteinfo.tag"></script>
 
     <div class="container">
-        <jObject></jObject>
+        <siteinfo></siteinfo>
     </div>
 
-    <script> riot.mount('jObject', { data:{
-      names:"test",
-      array:["a","b"],
-      obj:{
-        "t":1,
-        "m":2
-      }
+    <script>
+      riot.mount('siteinfo',{
+        siteinfo:{
+          cookies:[{
+            "Name":"test",
+            "Expires":"df"
+          }]
+        }
+      });
+    </script>
 
-    } }) </script>
 
 </body>
 </html>

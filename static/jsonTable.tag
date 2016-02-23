@@ -1,52 +1,74 @@
-<jObject>
-  <h3>jObject</h3>
+<jobject>
   <table>
+    <tbody>
     <tr each={k in kv}>
       <td>{k.name}</td>
       <td><raw content="{k}"/></td>
     </tr>
+  </tbody>
   </table>
 
   <script>
     this.data = opts.data || {}
     this.kv = [];
 
-    this.on('mount', function() {
+    this.on('update', function() {
       for(var x in this.data){
         var val = this.data[x]
-        tag = 'jValue'
+        var tag = 'jvalue';
         if(Array.isArray(val)){
-          tag = 'jArray';
+          tag = 'jtable';
+        }else if(typeof val=="object"){
+          tag ='jobject';
         }
-        this.kv.push({name:x,val:val,tag:tag});
+        this.kv.push({name:x,data:val,tag:tag});
       }
-      console.log(this.kv)
       this.update();
     })
 
   </script>
-</jObject>
+</jobject>
 
-<jValue>
+<jtable>
+  <table>
+    <thead>
+    <tr>
+      <th each="{row in columns}">{row}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr each="{row in rows}" if={!isArray}>
+      <td each="{k,v in row}">{v}</td>
+    </tr>
+    <tr if={isArray}>
+      <td each="{k,v in rows}">{k}</td>
+    </tr>
+  </tbody>
+  </table>
+  <script>
+    this.rows = opts.data || {}
+    this.columns = [];
+    this.isArray=false;
+    this.on('update', function() {
+      var firstElement = this.rows[0];
+      if (typeof firstElement != 'object'){
+        this.isArray=true;
+      } else {
+        for(var x in firstElement)
+            this.columns.push(x)
+      }
+      this.update();
+    });
+  </script>
+</jtable>
+
+<jvalue>
   <span>{val}</span>
   <script>
-    this.val = opts.content.val||'';
-    console.log('jvalue:' + this.val)
+    this.val = opts.data||'';
   </script>
-</jValue>
+</jvalue>
 
 <raw>
-  <span></span>
  riot.mount(this.root, opts.content.tag, opts.content)
 </raw>
-
-<jArray>
-</jArray>
-
-<jTable>
-
-</jTable>
-
-<jRow>
-
-</jRow>

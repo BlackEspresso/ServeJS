@@ -22,6 +22,7 @@
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
+        "js2Table.ts",
         "testTypescript.ts"
     ],
     "atom": {
