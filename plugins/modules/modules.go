@@ -1,8 +1,10 @@
 package modules
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"runtime"
 	"strings"
 
 	"github.com/robertkrimen/otto"
@@ -22,6 +24,41 @@ type Plugin struct {
 type ModByName map[string]*Plugin
 
 var modules ModByName = ModByName{}
+var defaultPath string = "./js/main.js"
+var usedRuntimes int = 0
+
+func NewJSRuntime() (*otto.Otto, error) {
+	vm := otto.New()
+	RegisterModules(vm)
+	path := defaultPath
+
+	fileC, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	/*
+		fileHash := md5.Sum(fileC)
+		if len(lastMd5) == 0 || lastMd5 != fileHash {
+			lastMd5 = fileHash
+			fmt.Println("compiling")
+			compiled, err = vm.Compile(path, nil)
+			if err != nil {
+				return nil, err
+			}
+		}
+		_, err = vm.Run(compiled)
+	*/
+	_, err = vm.Run(string(fileC))
+
+	usedRuntimes += 1
+	runtime.SetFinalizer(vm, finalizer)
+	return vm, err
+}
+
+func finalizer(f *otto.Otto) {
+	usedRuntimes -= 1
+	fmt.Println("used runtimes ", usedRuntimes)
+}
 
 func RegisterModules(vm *otto.Otto) {
 	vm.Set("require", func(c otto.FunctionCall) otto.Value {

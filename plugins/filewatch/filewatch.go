@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"./../modules"
-	"github.com/howeyc/fsnotify"
+	"github.com/fsnotify/fsnotify"
 	"github.com/robertkrimen/otto"
 )
 
@@ -23,7 +23,7 @@ func InitPlugin() *modules.Plugin {
 func registerVM(vm *otto.Otto) otto.Value {
 	watcher, err := fsnotify.NewWatcher()
 	//defer watcher.Close()
-
+	paths := map[string]bool{}
 	if err != nil {
 		log.Println(pluginName + " " + err.Error())
 	}
@@ -31,7 +31,8 @@ func registerVM(vm *otto.Otto) otto.Value {
 
 	obj.Set("watchDir", func(c otto.FunctionCall) otto.Value {
 		path, _ := c.Argument(0).ToString()
-		err := watcher.Watch(path)
+		err := watcher.Add(path)
+		paths[path] = true
 		return modules.ToResult(vm, true, err)
 	})
 	obj.Set("start", func(c otto.FunctionCall) otto.Value {
@@ -39,9 +40,9 @@ func registerVM(vm *otto.Otto) otto.Value {
 		go func() {
 			for {
 				select {
-				case ev := <-watcher.Event:
-					log.Println("event:", ev)
-				case err := <-watcher.Error:
+				case ev := <-watcher.Events:
+					log.Println("event:", ev.String())
+				case err := <-watcher.Errors:
 					log.Println("error:", err)
 				}
 			}

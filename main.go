@@ -3,7 +3,6 @@ package main
 import (
 	//"crypto/md5"
 	//"fmt"
-	"io/ioutil"
 	"log"
 
 	"./plugins/cache"
@@ -32,7 +31,7 @@ import (
 func main() {
 	registerPlugins()
 
-	vm, err := newJSRuntime()
+	vm, err := modules.NewJSRuntime()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,9 +50,9 @@ func registerPlugins() {
 	modules.AddPlugin(mail.InitPlugin())
 	modules.AddPlugin(cmd.InitPlugin())
 	modules.AddPlugin(phttp.InitPlugin())
-	modules.AddPlugin(websocket.InitPlugin(newJSRuntime))
+	modules.AddPlugin(websocket.InitPlugin(modules.NewJSRuntime))
 	modules.AddPlugin(httpmappings.InitPlugin())
-	modules.AddPlugin(httplistener.InitPlugin(newJSRuntime))
+	modules.AddPlugin(httplistener.InitPlugin(modules.NewJSRuntime))
 	modules.AddPlugin(cache.InitPlugin())
 	modules.AddPlugin(htmlcheck.InitPlugin())
 	modules.AddPlugin(settings.InitPlugin())
@@ -66,29 +65,3 @@ func registerPlugins() {
 
 var lastMd5 [16]byte = [16]byte{}
 var compiled *otto.Script
-
-func newJSRuntime() (*otto.Otto, error) {
-	vm := otto.New()
-	modules.RegisterModules(vm)
-	path := "./js/main.js"
-
-	fileC, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	/*
-		fileHash := md5.Sum(fileC)
-		if len(lastMd5) == 0 || lastMd5 != fileHash {
-			lastMd5 = fileHash
-			fmt.Println("compiling")
-			compiled, err = vm.Compile(path, nil)
-			if err != nil {
-				return nil, err
-			}
-		}
-		_, err = vm.Run(compiled)
-	*/
-	_, err = vm.Run(string(fileC))
-
-	return vm, err
-}

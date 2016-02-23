@@ -1,13 +1,17 @@
 <siteinfo>
+  <h3>Status: {siteinfo.status}</h3>
   <h3>Cookies</h3>
   <jtable data={siteinfo.cookies} props={cookieProps}></jtable>
   <h3>Invalid Tags</h3>
   <jtable data={siteinfo.invalidTags} props={invalidTagsProps}></jtable>
+  <h3>Hyperlinks</h3>
+  <jtable data={siteinfo.hrefs} props={hrefProps}></jtable>
   <script>
     this.siteinfo = opts.siteinfo || {}
-    this.cookieProps=['Name','Cookies']
+    this.cookieProps=['Name','Value']
     this.invalidTagsProps = ['TagName','AttributeName','ReasonText']
-
+    this.headerProps = ['Name']
+    this.hrefProps = ["href","rel","title"]
     if (this.siteinfo.invalidTags){
       invalidTags(this.siteinfo.invalidTags);
     }

@@ -6,7 +6,11 @@
     <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
     <style>
       table{
-        width: 100%;
+        table-layout:fixed;
+        word-break:break-all;
+      }
+      td {
+          min-width:80px;
       }
     </style>
 </head>
@@ -42,14 +46,7 @@
     </div>
 
     <script>
-      riot.mount('siteinfo',{
-        siteinfo:{
-          cookies:[{
-            "Name":"test",
-            "Expires":"df"
-          }]
-        }
-      });
+      
     </script>
 
 

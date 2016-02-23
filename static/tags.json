@@ -86,7 +86,7 @@
   },
   {
     "Name": "script",
-    "Attrs": [ "type", "src", "language", "charset", "async" ],
+    "Attrs": [ "type", "src", "language", "charset", "async","defer" ],
     "IsSelfClosing": false
   },
   {
