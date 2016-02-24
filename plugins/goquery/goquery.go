@@ -2,6 +2,8 @@ package goquery
 
 import (
 	"bytes"
+	"log"
+	"net/url"
 
 	"golang.org/x/net/html"
 
@@ -24,12 +26,23 @@ type GoQueryDoc struct {
 	doc *goquery.Document
 }
 
-func (g *GoQueryDoc) ExtractLinks() []string {
+func (g *GoQueryDoc) ExtractHrefs(baseUrl string) []string {
 	links := []string{}
+	bUrl, err := url.Parse(baseUrl)
+	if err != nil {
+		log.Println("goquery.ExtractLinks", err)
+		return []string{}
+	}
+
 	g.doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		attrValue, ok := s.Attr("href")
 		if ok {
-			links = append(links, attrValue)
+			linkUrl, err := url.Parse(attrValue)
+			fullUrl := attrValue
+			if err == nil {
+				fullUrl = bUrl.ResolveReference(linkUrl).String()
+			}
+			links = append(links, fullUrl)
 		}
 	})
 	return links

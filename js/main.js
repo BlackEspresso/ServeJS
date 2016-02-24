@@ -202,22 +202,43 @@ function siteInfo(resp,req){
 	}
 	var doc = goquery.newDocument(cResp.ok.body)
 	var form = doc.ExtractForms();
-	var hrefs = doc.ExtractAttributes('a');
+	var hrefs = doc.ExtractHrefs(url);
 	var scripts = doc.ExtractAttributes('script');
 	var links = doc.ExtractAttributes('link');
 	var zs = doc.ExtractAttributes('z');
 	
 	var htmlcheck = require('htmlcheck')
 	k  = htmlcheck.loadTags('./static/tags.json')
-	console.log(k.error)
+	//console.log(k.error)
 	var err = htmlcheck.validate(cResp.ok.body)
+
+	var reg = /(https?|ftp|file):\/\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[a-zA-Z0-9+&@#/%=~_|]/g;
+	var textUrls = cResp.ok.body.match(reg);
+
+	var hrefsObj = [];
+	for(var x=0;x<hrefs.length;x++){
+		hrefsObj.push({href:hrefs[x]})
+		textUrls.push(hrefs[x]);
+	}
+
+	textUrls.sort();
+	var allUrls = [];
+	var c = {}
+	for(var x=0;x<textUrls.length;x++){
+		if(c[textUrls[x]]===undefined){
+			c[textUrls[x]]=true;
+			allUrls.push({href:textUrls[x]});
+		}
+	}
+
 
 	var ret = {
 	    azs:zs,
 	    invalidTags:err
 	    header:cResp.ok.header,
-	    hrefs:hrefs,
+	    hrefs:hrefsObj,
 	    forms:form,
+	    allUrls:allUrls,
 	    scripts:scripts,
 	    links:links,
 	    cookies:cResp.ok.cookies,

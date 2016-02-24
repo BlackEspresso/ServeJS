@@ -405,7 +405,7 @@
   },
   {
     "Name": "th",
-    "Attrs": [ "align" ],
+    "Attrs": [ "align", "colspan" ],
     "IsSelfClosing": false
   },
   {

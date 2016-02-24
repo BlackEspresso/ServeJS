@@ -7,14 +7,14 @@
   <h3>Cookies</h3>
   <jtable data={siteinfo.cookies} props={cookieProps}></jtable>
   <h3>Hyperlinks</h3>
-  <jtable data={siteinfo.hrefs} clickHandler={scanSite} props={hrefProps}></jtable>
+  <jtable data={siteinfo.allUrls} clickHandler={scanSite} props={hrefProps}></jtable>
   <script>
     this.siteinfo = opts.siteinfo || {}
     this.cookieProps=[{name:'Name'},{name:'Value'}]
     this.invalidTagsProps = [{name:'TagName'},
     {name:'AttributeName'},{name:'ReasonText'}]
     this.headerProps = [{name:'Name'}]
-    this.hrefProps = [{name:"href",type:'link',class:'scanlink'},{name:"rel"},{name:"title"}]
+    this.hrefProps = [{name:"href",type:'link'}]
     if (this.siteinfo.invalidTags){
       invalidTags(this.siteinfo.invalidTags);
     }
