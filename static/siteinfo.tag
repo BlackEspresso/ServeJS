@@ -7,15 +7,26 @@
   <h3>Cookies</h3>
   <jtable data={siteinfo.cookies} props={cookieProps}></jtable>
   <h3>Hyperlinks</h3>
-  <jtable data={siteinfo.hrefs} props={hrefProps}></jtable>
+  <jtable data={siteinfo.hrefs} clickHandler={scanSite} props={hrefProps}></jtable>
   <script>
     this.siteinfo = opts.siteinfo || {}
-    this.cookieProps=['Name','Value']
-    this.invalidTagsProps = ['TagName','AttributeName','ReasonText']
-    this.headerProps = ['Name']
-    this.hrefProps = ["href","rel","title"]
+    this.cookieProps=[{name:'Name'},{name:'Value'}]
+    this.invalidTagsProps = [{name:'TagName'},
+    {name:'AttributeName'},{name:'ReasonText'}]
+    this.headerProps = [{name:'Name'}]
+    this.hrefProps = [{name:"href",type:'link',class:'scanlink'},{name:"rel"},{name:"title"}]
     if (this.siteinfo.invalidTags){
       invalidTags(this.siteinfo.invalidTags);
+    }
+
+    tableClick(e){
+      var el = e.target;
+      var href = el.attributes.getNamedItem('href');
+      if(href!=null){
+        e.preventDefault();
+        $('#inputUrl').val(href.value);
+        $('#formScanUrl').submit();
+      }
     }
 
     function invalidTags(tags){
@@ -64,12 +75,15 @@
 </jobject>
 
 <jtable>
-  <table>
+  <table onclick={parent.tableClick}>
     <tr>
-      <th each="{m in props}">{m}</th>
+      <th each="{m in props}">{m.displayName||m.name}</th>
     </th>
     <tr each={row in rows}>
-      <td each={k in row.cells}>{k}</td>
+      <td each={k in row.cells}>
+        <a href="{k.val}" if="{k.type=='link'}">{k.val}</a>
+        <span if="{k.type==null}">{k.val}</span>
+      </td>
     </tr>
   </table>
 
@@ -83,7 +97,10 @@
       for(var x=0;x<this.data.length;x++){
         var row = {cells:[]};
         for(var p=0;p<this.props.length;p++){
-          row.cells.push(this.data[x][this.props[p]]||null);
+          row.cells.push({val:this.data[x][this.props[p].name]||null,
+            type:this.props[p].type,
+            class:this.props[p].class
+          });
         }
         this.rows.push(row);
       }
