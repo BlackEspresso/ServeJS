@@ -1,9 +1,11 @@
 <siteinfo>
   <h3>Status: {siteinfo.status}</h3>
-  <h3>Cookies</h3>
-  <jtable data={siteinfo.cookies} props={cookieProps}></jtable>
+  <h3>Header</h3>
+  <jobject data={siteinfo.header}></jobject>
   <h3>Invalid Tags</h3>
   <jtable data={siteinfo.invalidTags} props={invalidTagsProps}></jtable>
+  <h3>Cookies</h3>
+  <jtable data={siteinfo.cookies} props={cookieProps}></jtable>
   <h3>Hyperlinks</h3>
   <jtable data={siteinfo.hrefs} props={hrefProps}></jtable>
   <script>
@@ -41,6 +43,25 @@
 
     </script>
 </siteinfo>
+
+<jobject>
+  <table>
+    <tr each={k,v in data}>
+      <td>{k}</td><td>{v}</td>
+    </tr>
+  </table>
+  <script>
+    this.data = opts.data||{};
+
+    this.on('update',function(){
+      //this.rows.length=0;
+      //for(var x=0;x<this.data.length;x++){
+
+      //}
+    })
+
+  </script>
+</jobject>
 
 <jtable>
   <table>

@@ -26,6 +26,32 @@ type ModByName map[string]*Plugin
 var modules ModByName = ModByName{}
 var defaultPath string = "./js/main.js"
 var usedRuntimes int = 0
+var pluginName = "modules"
+
+func InitPlugin() *Plugin {
+
+	p1 := Plugin{
+		Name: pluginName,
+		Init: registerVM,
+	}
+
+	return &p1
+}
+
+func registerVM(vm *otto.Otto) otto.Value {
+
+	obj, _ := vm.Object("({})")
+
+	obj.Set("run", func(c otto.FunctionCall) otto.Value {
+		go func() {
+			cFunc := c.Argument(0)
+			vm.Call(`Function.call.call`, nil, []interface{}{cFunc})
+		}()
+		return otto.TrueValue()
+	})
+
+	return obj.Value()
+}
 
 func NewJSRuntime() (*otto.Otto, error) {
 	vm := otto.New()

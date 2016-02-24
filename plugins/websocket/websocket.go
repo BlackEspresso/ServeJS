@@ -47,6 +47,7 @@ func doWebSocket(w http.ResponseWriter, r *http.Request,
 		val, _ := otto.ToValue(message)
 		return val
 	})
+
 	obj.Set("write", func(c otto.FunctionCall) otto.Value {
 		mType, _ := c.Argument(0).ToInteger()
 		message, _ := c.Argument(1).ToString()

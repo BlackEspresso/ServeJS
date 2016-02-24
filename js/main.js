@@ -27,7 +27,8 @@ function onRequest(resp,req){
 		.on('/hello',hello)
 		.on('/showcache',showcache)
 		.on('/mailto', mailTo)
-		.on('/run', run)
+		.on('/mm',runa)
+		.on('/run', runCmd)
 		.on('/login',login)
 		.on('/register',register)
 		.on('/req',request)
@@ -47,6 +48,13 @@ function onRequest(resp,req){
 		.on('/testHttp',testHttp)
 		.on('/filewatch',filewatch)
 		.on('/sendwebsocket',sendwebsocket)
+		
+}
+
+function runa(resp,req){
+	var modules = require('modules')
+	//modules.run(function(){console.log(4)})
+	resp.write('ok')
 }
 
 function sendwebsocket(resp,req){
@@ -385,7 +393,7 @@ function mailTo(resp,req){
 	resp.write(k.Err)
 }
 
-function run(resp,req){
+function runCmd(resp,req){
 	resp.contentType='text/plain'
 	var cmd = runCmd('echo','4','5')
 	if(cmd.ok)

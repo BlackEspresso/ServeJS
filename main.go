@@ -63,6 +63,7 @@ func registerPlugins() {
 	modules.AddPlugin(crypto.InitPlugin())
 	modules.AddPlugin(filewatch.InitPlugin())
 	modules.AddPlugin(events.InitPlugin())
+	modules.AddPlugin(modules.InitPlugin())
 }
 
 var lastMd5 [16]byte = [16]byte{}

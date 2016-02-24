@@ -5,12 +5,13 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
     <style>
-      table{
+      table {
         table-layout:fixed;
-        word-break:break-all;
+        width:100%;
       }
       td {
-          min-width:80px;
+        text-overflow: ellipsis; /* or inline-block */
+        word-wrap:break-word;
       }
     </style>
 </head>
@@ -23,17 +24,24 @@
             <label for="inputUrl">URL</label>
             <input class="u-full-width" type="text" placeholder="http://google.com" id="inputUrl">
             <input class="button-primary" type="submit" value="Submit">
-
+            <input class="button-primary" type="button" value="Decode" onclick="decodeUrl()">
         </form>
     </div>
     <script src="js/jquery-2.2.0.min.js"></script>
     <script src="js/riot+compiler.min.js"></script>
     <script>
+        function decodeUrl(){
+            var urlText = $('#inputUrl').val();
+            urlText = decodeURI(urlText);
+            $('#inputUrl').val(urlText.trim());
+        }
         var form = $('#formScanUrl');
         form.on('submit', function (event) {
             event.preventDefault();
             var url = form.find('#inputUrl');
-            $.getJSON('/siteinfo?url=' + url.val())
+            var urlText = encodeURIComponent(encodeURI(url.val()))
+
+            $.getJSON('/siteinfo?url=' + urlText)
                 .done((ret) => {
                     riot.mount('siteinfo', { siteinfo:ret })
                 })
@@ -46,7 +54,7 @@
     </div>
 
     <script>
-      
+
     </script>
 
 
