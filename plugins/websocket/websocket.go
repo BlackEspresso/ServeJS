@@ -12,10 +12,10 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
-func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
+func InitPlugin(createVM func() (*modules.JsVm, error)) *modules.Plugin {
 	p := modules.Plugin{
 		Name: "websocket",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			return otto.UndefinedValue()
 		},
 		HttpMapping: modules.FuncMapping{
@@ -29,7 +29,7 @@ func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
 }
 
 func doWebSocket(w http.ResponseWriter, r *http.Request,
-	createVM func() (*otto.Otto, error)) {
+	createVM func() (*modules.JsVm, error)) {
 
 	connection, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

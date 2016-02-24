@@ -24,7 +24,7 @@ func GetCache() map[string]string {
 	return kvCache
 }
 
-func registerVM(vm *otto.Otto) otto.Value {
+func registerVM(vm *modules.JsVm) otto.Value {
 	obj, _ := vm.Object("({})")
 
 	obj.Set("set", func(c otto.FunctionCall) otto.Value {

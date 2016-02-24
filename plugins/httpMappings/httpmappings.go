@@ -17,7 +17,7 @@ var urlMapping map[string]string = map[string]string{}
 func InitPlugin() *modules.Plugin {
 	p := modules.Plugin{
 		Name: "httpmappings",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			obj, _ := vm.Object("({})")
 			obj.Set("addMapping", func(c otto.FunctionCall) otto.Value {
 				url, _ := c.Argument(0).ToString()

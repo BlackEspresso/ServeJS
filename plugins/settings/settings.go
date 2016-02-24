@@ -19,7 +19,7 @@ func InitPlugin() *modules.Plugin {
 
 	p1 := modules.Plugin{
 		Name: "settings",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			obj, _ := vm.Object("({})")
 			obj.Set("read", func(c otto.FunctionCall) otto.Value {
 				path, _ := c.Argument(0).ToString()

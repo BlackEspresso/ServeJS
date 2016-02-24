@@ -17,9 +17,19 @@ type JsFileInfo struct {
 func InitPlugin() *modules.Plugin {
 	p := modules.Plugin{
 		Name: "file",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			obj, _ := vm.Object("({})")
-			obj.Set("write", writeFile)
+			obj.Set("write", func(c otto.FunctionCall) otto.Value {
+				path, err := c.Argument(0).ToString()
+				if err != nil {
+					return modules.ToResult(vm, nil, err)
+				}
+
+				data, _ := c.Argument(1).ToString()
+				//perm, _ := c.Argument(3).ToString()
+				err = ioutil.WriteFile(path, []byte(data), 777)
+				return modules.ToResult(vm, nil, err)
+			})
 
 			obj.Set("read", func(c otto.FunctionCall) otto.Value {
 				path, err := c.Argument(0).ToString()
@@ -102,16 +112,4 @@ func InitPlugin() *modules.Plugin {
 		},
 	}
 	return &p
-}
-
-func writeFile(c otto.FunctionCall) otto.Value {
-	path, err := c.Argument(0).ToString()
-	if err != nil {
-		return modules.ToResult(c.Otto, nil, err)
-	}
-
-	data, _ := c.Argument(1).ToString()
-	//perm, _ := c.Argument(3).ToString()
-	err = ioutil.WriteFile(path, []byte(data), 777)
-	return modules.ToResult(c.Otto, nil, err)
 }

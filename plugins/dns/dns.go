@@ -12,7 +12,7 @@ func InitPlugin() *modules.Plugin {
 
 	p1 := modules.Plugin{
 		Name: "dns",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			obj, _ := vm.Object("({})")
 			obj.Set("resolve", func(c otto.FunctionCall) otto.Value {
 				name, err := c.Argument(0).ToString()

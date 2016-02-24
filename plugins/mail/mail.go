@@ -22,7 +22,7 @@ func InitPlugin() *modules.Plugin {
 
 	p1 := modules.Plugin{
 		Name: "mail",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			o, _ := vm.Object("({})")
 
 			o.Set("loadMailSettings", func(c otto.FunctionCall) otto.Value {
@@ -46,7 +46,7 @@ func InitPlugin() *modules.Plugin {
 	return &p1
 }
 
-func loadSettings(vm *otto.Otto) {
+func loadSettings(vm *modules.JsVm) {
 	settings := settings.GetSettings()
 
 	mailSettings := settings.Plugins["mail"]

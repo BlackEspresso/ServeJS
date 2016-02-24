@@ -79,7 +79,7 @@ func (g *GoQueryDoc) ExtractAttributes(tagName string) []map[string]string {
 	return list
 }
 
-func registerVM(vm *otto.Otto) otto.Value {
+func registerVM(vm *modules.JsVm) otto.Value {
 	obj, _ := vm.Object("({})")
 
 	obj.Set("newDocument", func(c otto.FunctionCall) otto.Value {

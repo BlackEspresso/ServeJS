@@ -20,7 +20,7 @@ func InitPlugin() *modules.Plugin {
 	return &p1
 }
 
-func registerVM(vm *otto.Otto) otto.Value {
+func registerVM(vm *modules.JsVm) otto.Value {
 	validater := htmlcheck.Validator{}
 	obj, _ := vm.Object("({})")
 

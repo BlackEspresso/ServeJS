@@ -53,7 +53,10 @@ function onRequest(resp,req){
 
 function runa(resp,req){
 	var modules = require('modules')
-	//modules.run(function(){console.log(4)})
+	var time = require('time')
+	var k = 45;
+	modules.run(function(){console.log(k)})
+	time.sleep(10000)
 	resp.write('ok')
 }
 
@@ -191,7 +194,9 @@ function siteInfo(resp,req){
 			'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'
 		}
 	});
+	
 	if (cResp.error!=null){
+		console.log(cResp.error)
 		resp.write(cResp.error)
 		return
 	}

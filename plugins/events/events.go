@@ -20,7 +20,7 @@ func InitPlugin() *modules.Plugin {
 var channels map[string]chan interface{} = map[string]chan interface{}{}
 var routes map[string][]string = map[string][]string{}
 
-func registerVM(vm *otto.Otto) otto.Value {
+func registerVM(vm *modules.JsVm) otto.Value {
 	k, _ := vm.Object("({})")
 
 	k.Set("sleep", func(c otto.FunctionCall) otto.Value {

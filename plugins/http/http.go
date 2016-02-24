@@ -24,7 +24,7 @@ func InitPlugin() *modules.Plugin {
 	return &p
 }
 
-func registerVM(vm *otto.Otto) otto.Value {
+func registerVM(vm *modules.JsVm) otto.Value {
 	obj, _ := vm.Object("({})")
 
 	obj.Set("do", func(c otto.FunctionCall) otto.Value {

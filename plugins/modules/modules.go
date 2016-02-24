@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/robertkrimen/otto"
 )
 
 type FuncMapping map[string]func(w http.ResponseWriter, r *http.Request)
 type JSCall func(otto.FunctionCall) otto.Value
-type PluginInit func(*otto.Otto) otto.Value
+type PluginInit func(*JsVm) otto.Value
 
 type Plugin struct {
 	Name        string
@@ -28,6 +29,50 @@ var defaultPath string = "./js/main.js"
 var usedRuntimes int = 0
 var pluginName = "modules"
 
+type JsVm struct {
+	vm    *otto.Otto
+	inUse *sync.Mutex
+}
+
+func NewJsVm(vm *otto.Otto) *JsVm {
+	return &JsVm{vm, &sync.Mutex{}}
+}
+
+func (j *JsVm) Run(src interface{}) (otto.Value, error) {
+	j.inUse.Lock()
+	ret, err := j.vm.Run(src)
+	j.inUse.Unlock()
+	return ret, err
+}
+
+func (j *JsVm) Object(source string) (*otto.Object, error) {
+	//j.inUse.Lock()
+	ret, err := j.vm.Object(source)
+	//j.inUse.Unlock()
+	return ret, err
+}
+
+func (j *JsVm) ToValue(value interface{}) (otto.Value, error) {
+	//j.inUse.Lock()
+	val, err := j.vm.ToValue(value)
+	//j.inUse.Unlock()
+	return val, err
+}
+
+func (j *JsVm) Set(name string, value interface{}) error {
+	//j.inUse.Lock()
+	err := j.vm.Set(name, value)
+	//j.inUse.Unlock()
+	return err
+}
+
+func (j *JsVm) Call(source string, this interface{}, argumentList ...interface{}) (otto.Value, error) {
+	j.inUse.Lock()
+	ret, err := j.vm.Call(source, this, argumentList...)
+	j.inUse.Unlock()
+	return ret, err
+}
+
 func InitPlugin() *Plugin {
 
 	p1 := Plugin{
@@ -38,14 +83,17 @@ func InitPlugin() *Plugin {
 	return &p1
 }
 
-func registerVM(vm *otto.Otto) otto.Value {
+func registerVM(vm *JsVm) otto.Value {
 
 	obj, _ := vm.Object("({})")
 
 	obj.Set("run", func(c otto.FunctionCall) otto.Value {
 		go func() {
-			cFunc := c.Argument(0)
-			vm.Call(`Function.call.call`, nil, []interface{}{cFunc})
+			cFunc := c.ArgumentList[0]
+			arg := make([]interface{}, 1)
+			arg[0] = cFunc
+			_, err := vm.Call(`Function.call.call`, nil, cFunc)
+			fmt.Println(err)
 		}()
 		return otto.TrueValue()
 	})
@@ -53,9 +101,10 @@ func registerVM(vm *otto.Otto) otto.Value {
 	return obj.Value()
 }
 
-func NewJSRuntime() (*otto.Otto, error) {
+func NewJSRuntime() (*JsVm, error) {
 	vm := otto.New()
-	RegisterModules(vm)
+	jsvm := NewJsVm(vm)
+	RegisterModules(jsvm)
 	path := defaultPath
 
 	fileC, err := ioutil.ReadFile(path)
@@ -74,21 +123,23 @@ func NewJSRuntime() (*otto.Otto, error) {
 		}
 		_, err = vm.Run(compiled)
 	*/
-	_, err = vm.Run(string(fileC))
+
+	_, err = jsvm.Run(string(fileC))
 
 	if err == nil {
 		usedRuntimes += 1
-		runtime.SetFinalizer(vm, finalizer)
+		runtime.SetFinalizer(jsvm, finalizer)
 	}
-	return vm, err
+
+	return jsvm, err
 }
 
-func finalizer(f *otto.Otto) {
+func finalizer(f *JsVm) {
 	usedRuntimes -= 1
 	fmt.Println("used runtimes ", usedRuntimes)
 }
 
-func RegisterModules(vm *otto.Otto) {
+func RegisterModules(vm *JsVm) {
 	vm.Set("require", func(c otto.FunctionCall) otto.Value {
 		name, _ := c.Argument(0).ToString()
 		module, ok := modules[name]
@@ -102,7 +153,7 @@ func RegisterModules(vm *otto.Otto) {
 				return otto.UndefinedValue()
 			}
 		}
-		return module.Init(c.Otto)
+		return module.Init(vm)
 	})
 }
 
@@ -118,7 +169,7 @@ func GetPlugins() []*Plugin {
 	return modulesList
 }
 
-func ToResult(vm *otto.Otto, valOk interface{}, err error) otto.Value {
+func ToResult(vm *JsVm, valOk interface{}, err error) otto.Value {
 	res, _ := vm.Object("({})")
 	if err != nil {
 		res.Set("error", err.Error())

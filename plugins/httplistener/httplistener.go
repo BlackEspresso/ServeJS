@@ -12,11 +12,11 @@ import (
 
 var kvCache map[string]string = map[string]string{}
 
-func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
+func InitPlugin(createVM func() (*modules.JsVm, error)) *modules.Plugin {
 
 	p1 := modules.Plugin{
 		Name: "httplistener",
-		Init: func(vm *otto.Otto) otto.Value {
+		Init: func(vm *modules.JsVm) otto.Value {
 			obj, _ := vm.Object("({})")
 			obj.Set("addr", ":8081")
 			obj.Set("start", func(c otto.FunctionCall) otto.Value {
@@ -40,7 +40,7 @@ func InitPlugin(createVM func() (*otto.Otto, error)) *modules.Plugin {
 	return &p1
 }
 
-func startServer(addr string, newJSRuntime func() (*otto.Otto, error)) {
+func startServer(addr string, newJSRuntime func() (*modules.JsVm, error)) {
 	jss := &JsServer{}
 	jss.vmFunc = newJSRuntime
 
@@ -48,7 +48,7 @@ func startServer(addr string, newJSRuntime func() (*otto.Otto, error)) {
 }
 
 type JsServer struct {
-	vmFunc func() (*otto.Otto, error)
+	vmFunc func() (*modules.JsVm, error)
 }
 
 func (j *JsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
