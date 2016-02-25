@@ -29,6 +29,7 @@ function onRequest(resp,req){
 		.on('/mailto', mailTo)
 		.on('/mm',runa)
 		.on('/run', runCmd)
+		.on('/scanandmail',scanandmail)
 		.on('/login',login)
 		.on('/register',register)
 		.on('/req',request)
@@ -49,7 +50,61 @@ function onRequest(resp,req){
 		.on('/filewatch',filewatch)
 		.on('/sendwebsocket',sendwebsocket)
 		.on('/stats',stats)
+		.on('/xsstest',xsstest)
 		
+}
+
+
+function getQuery(url){
+	var splitted = url.split('?');
+	var queries = {};
+	if(splitted.length<=1){
+		return queries;
+	}
+
+	var queryString = splitted[1];
+	var qs = queryString.split('&');
+	for(var q=0;q<qs.length;q++){
+		var kv = qs[q].split('=');
+		queries[kv[0]]=kv[1];
+	}
+	return queries;
+}
+
+function scanandmail(resp,req){
+	var tasks= require('tasks');
+	var url = req.formValues.url[0];
+	var email = req.formValues.email[0];
+	
+	tasks.addTask('test',0,function(){
+		var baseUrl = url;
+		var vecs = ['><zq>','\"><zq>','\'><zq>'];
+		var queries = getQuery(baseUrl);
+		console.log(JSON.stringify(queries));
+
+		var founds = [];
+		for(var q in queries){
+			console.log('qs:' + q)
+			for(var x=0;x<vecs.length;x++){
+				var nextUrl = baseUrl.replace(q+'='+queries[q],q+'='+vecs[x]+queries[q])
+				console.log(nextUrl)
+				var ret = getSiteInfo(nextUrl);
+				if(ret.zsq.length >0){
+					founds.push(nextUrl)
+				}
+			}
+		}
+
+		var mail = require('mail');
+		var err = mail.send(email,'scanandmail', JSON.stringify(founds));
+	});
+}
+
+function xsstest(resp,req){
+	resp.write('<html>')
+	var link = req.formValues.link|| 'test';
+	resp.write('<a href="'+link+'">'+ link+'</a>')
+	resp.write('</html>')
 }
 
 function stats(resp,req){
@@ -189,9 +244,8 @@ function fuzzUrls(url,count,start){
 	return ret;
 }
 
-function siteInfo(resp,req){
-    var url = req.formValues.url[0];
-    var goquery = require('goquery')
+function getSiteInfo(url){
+	 var goquery = require('goquery')
 	var http = require('http')
 	var cResp = http.do({
 		url:url,
@@ -214,22 +268,26 @@ function siteInfo(resp,req){
 	var hrefs = doc.ExtractHrefs(url);
 	var scripts = doc.ExtractAttributes('script');
 	var links = doc.ExtractAttributes('link');
-	var zs = doc.ExtractAttributes('z');
+	var zsq = doc.ExtractAttributes('zq');
 	
 	var htmlcheck = require('htmlcheck')
-	k  = htmlcheck.loadTags('./static/tags.json')
+	var k = htmlcheck.loadTags('./static/tags.json')
 	//console.log(k.error)
 	var err = htmlcheck.validate(cResp.ok.body)
 
 	var reg = /((https?|ftp|file):)?\/\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[a-zA-Z0-9+&@#/%=~_|]/g;
 	var textUrls = cResp.ok.body.match(reg);
 
+	if (textUrls==null){
+		textUrls = [];
+	}
+
 	var hrefsObj = [];
 	for(var x=0;x<hrefs.length;x++){
 		hrefsObj.push({href:hrefs[x]})
 		textUrls.push(hrefs[x]);
 	}
-
+	
 	textUrls.sort();
 	var allUrls = [];
 	var c = {}
@@ -242,7 +300,7 @@ function siteInfo(resp,req){
 
 
 	var ret = {
-	    azs:zs,
+	    zsq:zsq,
 	    invalidTags:err
 	    header:cResp.ok.header,
 	    hrefs:hrefsObj,
@@ -255,6 +313,13 @@ function siteInfo(resp,req){
 	    tls: cResp.ok.tlsDNSNames
 	    
 	}
+	return ret;
+}
+
+function siteInfo(resp,req){
+    var url = req.formValues.url[0];
+   	var ret = getSiteInfo(url);
+
 	resp.write(JSON.stringify(ret))
 }
 

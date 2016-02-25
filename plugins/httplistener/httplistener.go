@@ -79,4 +79,5 @@ func (j *JsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	phttp.JsoToResponseWriter(objResponse, w)
 
+	//vm.Clear()
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -43,6 +44,13 @@ func (j *JsVm) Run(src interface{}) (otto.Value, error) {
 	ret, err := j.vm.Run(src)
 	j.inUse.Unlock()
 	return ret, err
+}
+
+func (j *JsVm) Clear() {
+	j.inUse.Lock()
+	j.vm.Clear()
+	j.vm = nil
+	j.inUse.Unlock()
 }
 
 func (j *JsVm) Object(source string) (*otto.Object, error) {
@@ -128,13 +136,14 @@ func NewJSRuntime() (*JsVm, error) {
 
 	if err == nil {
 		UsedRuntimes += 1
-		runtime.SetFinalizer(jsvm, finalizer)
+		fmt.Println("used runtimes " + strconv.Itoa(UsedRuntimes))
+		runtime.SetFinalizer(vm, finalizer)
 	}
 
 	return jsvm, err
 }
 
-func finalizer(f *JsVm) {
+func finalizer(f *otto.Otto) {
 	UsedRuntimes -= 1
 	fmt.Println("used runtimes ", UsedRuntimes)
 }
