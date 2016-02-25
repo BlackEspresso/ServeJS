@@ -26,7 +26,7 @@ type ModByName map[string]*Plugin
 
 var modules ModByName = ModByName{}
 var defaultPath string = "./js/main.js"
-var usedRuntimes int = 0
+var UsedRuntimes int = 0
 var pluginName = "modules"
 
 type JsVm struct {
@@ -127,7 +127,7 @@ func NewJSRuntime() (*JsVm, error) {
 	_, err = jsvm.Run(string(fileC))
 
 	if err == nil {
-		usedRuntimes += 1
+		UsedRuntimes += 1
 		runtime.SetFinalizer(jsvm, finalizer)
 	}
 
@@ -135,8 +135,8 @@ func NewJSRuntime() (*JsVm, error) {
 }
 
 func finalizer(f *JsVm) {
-	usedRuntimes -= 1
-	fmt.Println("used runtimes ", usedRuntimes)
+	UsedRuntimes -= 1
+	fmt.Println("used runtimes ", UsedRuntimes)
 }
 
 func RegisterModules(vm *JsVm) {

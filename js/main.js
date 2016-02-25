@@ -48,7 +48,13 @@ function onRequest(resp,req){
 		.on('/testHttp',testHttp)
 		.on('/filewatch',filewatch)
 		.on('/sendwebsocket',sendwebsocket)
+		.on('/stats',stats)
 		
+}
+
+function stats(resp,req){
+	var stats = require('stats');
+	resp.write(JSON.stringify(stats.getStats()));
 }
 
 function runa(resp,req){
@@ -191,6 +197,8 @@ function siteInfo(resp,req){
 		url:url,
 		followRedirects:false,
 		header:{
+			'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+			'Accept-Language':'de,en-US;q=0.8,en;q=0.6',
 			'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'
 		}
 	});
@@ -200,6 +208,7 @@ function siteInfo(resp,req){
 		resp.write(cResp.error)
 		return
 	}
+	//console.log(cResp.ok.body)
 	var doc = goquery.newDocument(cResp.ok.body)
 	var form = doc.ExtractForms();
 	var hrefs = doc.ExtractHrefs(url);
@@ -212,7 +221,7 @@ function siteInfo(resp,req){
 	//console.log(k.error)
 	var err = htmlcheck.validate(cResp.ok.body)
 
-	var reg = /(https?|ftp|file):\/\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[a-zA-Z0-9+&@#/%=~_|]/g;
+	var reg = /((https?|ftp|file):)?\/\/[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[a-zA-Z0-9+&@#/%=~_|]/g;
 	var textUrls = cResp.ok.body.match(reg);
 
 	var hrefsObj = [];
@@ -225,7 +234,7 @@ function siteInfo(resp,req){
 	var allUrls = [];
 	var c = {}
 	for(var x=0;x<textUrls.length;x++){
-		if(c[textUrls[x]]===undefined){
+		if(c[textUrls[x]]!=true){
 			c[textUrls[x]]=true;
 			allUrls.push({href:textUrls[x]});
 		}

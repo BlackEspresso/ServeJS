@@ -1,9 +1,12 @@
 package main
 
 import (
+	"net/http"
 	//"crypto/md5"
 	//"fmt"
 	"log"
+
+	_ "net/http/pprof"
 
 	"./plugins/cache"
 	"./plugins/cmd"
@@ -21,6 +24,7 @@ import (
 	"./plugins/modules"
 	"./plugins/mongodb"
 	"./plugins/settings"
+	"./plugins/stats"
 	"./plugins/tasks"
 	"./plugins/templating"
 	"./plugins/time"
@@ -37,10 +41,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
+
 	_, err = vm.Call("onStart", nil)
 	if err != nil {
 		log.Println(err)
 	}
+
 }
 
 func registerPlugins() {
@@ -64,6 +73,7 @@ func registerPlugins() {
 	modules.AddPlugin(filewatch.InitPlugin())
 	modules.AddPlugin(events.InitPlugin())
 	modules.AddPlugin(modules.InitPlugin())
+	modules.AddPlugin(stats.InitPlugin())
 }
 
 var lastMd5 [16]byte = [16]byte{}
