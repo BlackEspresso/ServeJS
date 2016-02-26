@@ -80,11 +80,15 @@ function scanandmail(resp,req){
 		var baseUrl = url;
 		var vecs = ['><zq>','\"><zq>','\'><zq>'];
 		var queries = getQuery(baseUrl);
-		console.log(JSON.stringify(queries));
 
+		var mt = '';
+		var log = {};
 		var founds = [];
+
+		var baseReq = getSiteInfo(baseUrl);
+		founds.push(baseReq);
+
 		for(var q in queries){
-			console.log('qs:' + q)
 			for(var x=0;x<vecs.length;x++){
 				var nextUrl = baseUrl.replace(q+'='+queries[q],q+'='+vecs[x]+queries[q])
 				console.log(nextUrl)
@@ -92,11 +96,21 @@ function scanandmail(resp,req){
 				if(ret.zsq.length >0){
 					founds.push(nextUrl)
 				}
+				log.push(ret);
 			}
 		}
 
+		mt += JSON.stringify(founds);
+		mt += '\n'
+		for(var x=0;x<log.length;x++){
+			mt += log[x].request.url + ' ' + log[x].invalidTags.length;
+			mt += '\n'
+		}
+		
+
+
 		var mail = require('mail');
-		var err = mail.send(email,'scanandmail', JSON.stringify(founds));
+		var err = mail.send(email,'scanandmail', mt);
 	});
 }
 
@@ -300,8 +314,9 @@ function getSiteInfo(url){
 
 
 	var ret = {
+		request:{ url:url},
 	    zsq:zsq,
-	    invalidTags:err
+	    invalidTags:err,
 	    header:cResp.ok.header,
 	    hrefs:hrefsObj,
 	    forms:form,
