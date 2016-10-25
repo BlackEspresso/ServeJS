@@ -2,6 +2,6 @@ port: 8080
 plugins:
   mail:
     servername: smtp.mailgun.org
-    password: 94681349609b132382bc3bd5a6caecae
+    password: mmmm
     username: postmaster@sandbox38ef445e0bef43a1889bf5a0855df2ff.mailgun.org
     port: 587
